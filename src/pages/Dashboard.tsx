@@ -29,6 +29,67 @@ const industryNames: Record<string, string> = {
   educacion: "Educación"
 };
 
+// Descripciones específicas por industria
+const industryDescriptions: Record<string, {
+  overview: string;
+  chartDescriptions: Record<string, string>;
+}> = {
+  retail: {
+    overview: "Análisis completo de ventas, inventario, marketing y comportamiento del cliente en el sector retail.",
+    chartDescriptions: {
+      distribucion: "Muestra la distribución del volumen de ventas por categoría de producto.",
+      tendencia: "Evolución de ventas a lo largo del tiempo, identificando patrones estacionales.",
+      detalle: "Análisis detallado del rendimiento de productos y categorías.",
+      comparativa: "Comparación de rendimiento actual vs período anterior."
+    }
+  },
+  finanzas: {
+    overview: "Métricas clave para entidades financieras: rentabilidad, gestión de riesgos, eficiencia operativa y satisfacción del cliente.",
+    chartDescriptions: {
+      distribucion: "Distribución de ingresos por línea de producto financiero.",
+      tendencia: "Evolución de rendimiento de inversiones y captación de clientes.",
+      detalle: "Análisis de riesgo y cumplimiento normativo.",
+      comparativa: "Benchmarking contra competidores y períodos anteriores."
+    }
+  },
+  salud: {
+    overview: "Indicadores clave para centros sanitarios: calidad asistencial, eficiencia operativa, satisfacción del paciente y resultados clínicos.",
+    chartDescriptions: {
+      distribucion: "Distribución de pacientes por especialidad y tipo de consulta.",
+      tendencia: "Evolución de tiempos de espera y ocupación hospitalaria.",
+      detalle: "Análisis detallado de rendimiento por departamento y métricas clínicas.",
+      comparativa: "Comparativa de indicadores clave con estándares del sector."
+    }
+  },
+  manufactura: {
+    overview: "Control integral de producción industrial: eficiencia, calidad, mantenimiento y cadena de suministro.",
+    chartDescriptions: {
+      distribucion: "Distribución de producción por línea de producto y planta.",
+      tendencia: "Evolución de OEE, defectos y tiempos de ciclo.",
+      detalle: "Análisis detallado de rendimiento por línea y turno.",
+      comparativa: "Comparativa entre plantas y periodos productivos."
+    }
+  },
+  tecnologia: {
+    overview: "Métricas digitales clave: adquisición y retención de usuarios, rendimiento del producto y métricas de infraestructura.",
+    chartDescriptions: {
+      distribucion: "Distribución de usuarios por plataforma y segmento.",
+      tendencia: "Evolución del crecimiento de usuarios y engagement.",
+      detalle: "Análisis de funnel de conversión y comportamiento de usuario.",
+      comparativa: "Benchmarking de KPIs con versiones anteriores."
+    }
+  },
+  educacion: {
+    overview: "Indicadores esenciales para instituciones educativas: rendimiento académico, satisfacción, empleabilidad y finanzas.",
+    chartDescriptions: {
+      distribucion: "Distribución de estudiantes por programa y nivel.",
+      tendencia: "Evolución de matriculaciones y tasas de graduación.",
+      detalle: "Análisis detallado de rendimiento académico e indicadores de calidad.",
+      comparativa: "Comparativa con otras instituciones y periodos académicos."
+    }
+  }
+};
+
 // Componente para mostrar un estado de carga para los gráficos
 const ChartSkeleton = () => (
   <div className="w-full space-y-3">
@@ -45,6 +106,8 @@ const Dashboard = () => {
 
   // Nombre de la industria para mostrar
   const industryName = industry ? industryNames[industry] || "General" : "General";
+  // Descripciones específicas de la industria
+  const industryInfo = industry ? industryDescriptions[industry] || industryDescriptions.retail : industryDescriptions.retail;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -108,7 +171,7 @@ const Dashboard = () => {
           <div className="mb-6">
             <h1 className="text-3xl font-bold">Dashboard: {industryName}</h1>
             <p className="text-muted-foreground mt-1">
-              Análisis y visualización de datos específicos para el sector de {industryName.toLowerCase()}.
+              {industryInfo.overview}
             </p>
           </div>
 
@@ -165,10 +228,18 @@ const Dashboard = () => {
                 ) : (
                   data && (
                     <>
-                      <ChartContainer title="Distribución de ventas">
+                      <ChartContainer 
+                        title="Distribución de ventas" 
+                        industry={industry || "retail"}
+                        description={industryInfo.chartDescriptions.distribucion}
+                      >
                         <SimplePieChart data={data.distributionData} />
                       </ChartContainer>
-                      <ChartContainer title="Tendencia de ventas">
+                      <ChartContainer 
+                        title="Tendencia de ventas" 
+                        industry={industry || "retail"}
+                        description={industryInfo.chartDescriptions.tendencia}
+                      >
                         <SimpleBarChart data={data.salesData} />
                       </ChartContainer>
                     </>
@@ -188,10 +259,18 @@ const Dashboard = () => {
                 ) : (
                   data && (
                     <>
-                      <ChartContainer title="Evolución temporal">
+                      <ChartContainer 
+                        title="Evolución temporal" 
+                        industry={industry || "retail"}
+                        description="Analiza la evolución de los indicadores clave a lo largo del tiempo"
+                      >
                         <SimpleAreaChart data={data.trendsData} />
                       </ChartContainer>
-                      <ChartContainer title="Métricas principales">
+                      <ChartContainer 
+                        title="Métricas principales" 
+                        industry={industry || "retail"}
+                        description="Comparativa de los principales indicadores de rendimiento"
+                      >
                         <MultiLineChart data={data.performanceData} />
                       </ChartContainer>
                     </>
@@ -207,7 +286,11 @@ const Dashboard = () => {
                   <ChartSkeleton />
                 ) : (
                   data && (
-                    <ChartContainer title="Análisis detallado por periodo">
+                    <ChartContainer 
+                      title="Análisis detallado por periodo" 
+                      industry={industry || "retail"}
+                      description={industryInfo.chartDescriptions.detalle}
+                    >
                       <SimpleLineChart data={data.salesData} height={400} />
                     </ChartContainer>
                   )
@@ -222,10 +305,18 @@ const Dashboard = () => {
                 ) : (
                   data && (
                     <>
-                      <ChartContainer title="Distribución por categoría">
+                      <ChartContainer 
+                        title="Distribución por categoría" 
+                        industry={industry || "retail"}
+                        description="Análisis detallado de la distribución por categoría de producto"
+                      >
                         <SimplePieChart data={data.distributionData} />
                       </ChartContainer>
-                      <ChartContainer title="Rendimiento individual">
+                      <ChartContainer 
+                        title="Rendimiento individual" 
+                        industry={industry || "retail"}
+                        description="Rendimiento individual de cada elemento analizado"
+                      >
                         <SimpleBarChart data={data.salesData} />
                       </ChartContainer>
                     </>
@@ -241,7 +332,11 @@ const Dashboard = () => {
                   <ChartSkeleton />
                 ) : (
                   data && (
-                    <ChartContainer title="Comparativa con periodo anterior">
+                    <ChartContainer 
+                      title="Comparativa con periodo anterior" 
+                      industry={industry || "retail"}
+                      description={industryInfo.chartDescriptions.comparativa}
+                    >
                       <GroupedBarChart data={data.salesData} height={400} />
                     </ChartContainer>
                   )
@@ -256,10 +351,18 @@ const Dashboard = () => {
                 ) : (
                   data && (
                     <>
-                      <ChartContainer title="Rendimiento comparativo">
+                      <ChartContainer 
+                        title="Rendimiento comparativo" 
+                        industry={industry || "retail"}
+                        description="Comparativa de diferentes métricas de rendimiento"
+                      >
                         <MultiLineChart data={data.performanceData} />
                       </ChartContainer>
-                      <ChartContainer title="Distribución comparativa">
+                      <ChartContainer 
+                        title="Distribución comparativa" 
+                        industry={industry || "retail"}
+                        description="Análisis comparativo de la distribución de datos"
+                      >
                         <SimpleBarChart data={data.distributionData} />
                       </ChartContainer>
                     </>

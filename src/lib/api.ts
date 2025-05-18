@@ -1,4 +1,3 @@
-
 // Simulación de API para los propósitos del demo
 // En un entorno real, esto se conectaría a una API de backend (FastAPI, etc.)
 
@@ -7,7 +6,7 @@ import { toast } from "sonner";
 // Tipos de datos
 export interface ChartData {
   name: string;
-  value: number;
+  value?: number;
   [key: string]: any;
 }
 
@@ -38,12 +37,12 @@ const DATA: Record<string, IndustryData> = {
       { name: 'Jul', value: 3490, actual: 3490, previo: 3200 },
     ],
     performanceData: [
-      { name: 'Ene', serie1: 4000, serie2: 2400, serie3: 1200 },
-      { name: 'Feb', serie1: 3000, serie2: 1398, serie3: 900 },
-      { name: 'Mar', serie1: 2000, serie2: 9800, serie3: 1800 },
-      { name: 'Abr', serie1: 2780, serie2: 3908, serie3: 2000 },
-      { name: 'May', serie1: 1890, serie2: 4800, serie3: 1500 },
-      { name: 'Jun', serie1: 2390, serie2: 3800, serie3: 1700 },
+      { name: 'Ene', value: 4000, serie1: 4000, serie2: 2400, serie3: 1200 },
+      { name: 'Feb', value: 3000, serie1: 3000, serie2: 1398, serie3: 900 },
+      { name: 'Mar', value: 2000, serie1: 2000, serie2: 9800, serie3: 1800 },
+      { name: 'Abr', value: 2780, serie1: 2780, serie2: 3908, serie3: 2000 },
+      { name: 'May', value: 1890, serie1: 1890, serie2: 4800, serie3: 1500 },
+      { name: 'Jun', value: 2390, serie1: 2390, serie2: 3800, serie3: 1700 },
     ],
     distributionData: [
       { name: 'Electrónica', value: 400 },
@@ -78,12 +77,12 @@ const DATA: Record<string, IndustryData> = {
       { name: 'Jul', value: 6200, actual: 6200, previo: 5900 },
     ],
     performanceData: [
-      { name: 'Ene', serie1: 5000, serie2: 3400, serie3: 2200 },
-      { name: 'Feb', serie1: 5200, serie2: 3600, serie3: 2300 },
-      { name: 'Mar', serie1: 5400, serie2: 3800, serie3: 2400 },
-      { name: 'Abr', serie1: 5600, serie2: 4000, serie3: 2500 },
-      { name: 'May', serie1: 5800, serie2: 4200, serie3: 2600 },
-      { name: 'Jun', serie1: 6000, serie2: 4400, serie3: 2700 },
+      { name: 'Ene', value: 5000, serie1: 5000, serie2: 3400, serie3: 2200 },
+      { name: 'Feb', value: 5200, serie1: 5200, serie2: 3600, serie3: 2300 },
+      { name: 'Mar', value: 5400, serie1: 5400, serie2: 3800, serie3: 2400 },
+      { name: 'Abr', value: 5600, serie1: 5600, serie2: 4000, serie3: 2500 },
+      { name: 'May', value: 5800, serie1: 5800, serie2: 4200, serie3: 2600 },
+      { name: 'Jun', value: 6000, serie1: 6000, serie2: 4400, serie3: 2700 },
     ],
     distributionData: [
       { name: 'Inversiones', value: 500 },
@@ -119,12 +118,12 @@ const DATA: Record<string, IndustryData> = {
       { name: 'Jul', value: 3800, actual: 3800, previo: 3600 },
     ],
     performanceData: [
-      { name: 'Ene', serie1: 1000, serie2: 800, serie3: 500 },
-      { name: 'Feb', serie1: 1200, serie2: 1000, serie3: 600 },
-      { name: 'Mar', serie1: 1100, serie2: 900, serie3: 550 },
-      { name: 'Abr', serie1: 1300, serie2: 1100, serie3: 650 },
-      { name: 'May', serie1: 1500, serie2: 1300, serie3: 750 },
-      { name: 'Jun', serie1: 1400, serie2: 1200, serie3: 700 },
+      { name: 'Ene', value: 1000, serie1: 1000, serie2: 800, serie3: 500 },
+      { name: 'Feb', value: 1200, serie1: 1200, serie2: 1000, serie3: 600 },
+      { name: 'Mar', value: 1100, serie1: 1100, serie2: 900, serie3: 550 },
+      { name: 'Abr', value: 1300, serie1: 1300, serie2: 1100, serie3: 650 },
+      { name: 'May', value: 1500, serie1: 1500, serie2: 1300, serie3: 750 },
+      { name: 'Jun', value: 1400, serie1: 1400, serie2: 1200, serie3: 700 },
     ],
     distributionData: [
       { name: 'Consultas', value: 400 },
@@ -159,12 +158,12 @@ const DATA: Record<string, IndustryData> = {
       { name: 'Jul', value: 8600, actual: 8600, previo: 8400 },
     ],
     performanceData: [
-      { name: 'Ene', serie1: 2000, serie2: 1800, serie3: 1500 },
-      { name: 'Feb', serie1: 2200, serie2: 2000, serie3: 1700 },
-      { name: 'Mar', serie1: 2100, serie2: 1900, serie3: 1600 },
-      { name: 'Abr', serie1: 2300, serie2: 2100, serie3: 1800 },
-      { name: 'May', serie1: 2500, serie2: 2300, serie3: 2000 },
-      { name: 'Jun', serie1: 2400, serie2: 2200, serie3: 1900 },
+      { name: 'Ene', value: 2000, serie1: 2000, serie2: 1800, serie3: 1500 },
+      { name: 'Feb', value: 2200, serie1: 2200, serie2: 2000, serie3: 1700 },
+      { name: 'Mar', value: 2100, serie1: 2100, serie2: 1900, serie3: 1600 },
+      { name: 'Abr', value: 2300, serie1: 2300, serie2: 2100, serie3: 1800 },
+      { name: 'May', value: 2500, serie1: 2500, serie2: 2300, serie3: 2000 },
+      { name: 'Jun', value: 2400, serie1: 2400, serie2: 2200, serie3: 1900 },
     ],
     distributionData: [
       { name: 'Producto A', value: 500 },
@@ -199,12 +198,12 @@ const DATA: Record<string, IndustryData> = {
       { name: 'Jul', value: 16000, actual: 16000, previo: 15000 },
     ],
     performanceData: [
-      { name: 'Ene', serie1: 5000, serie2: 4000, serie3: 3000 },
-      { name: 'Feb', serie1: 5500, serie2: 4500, serie3: 3500 },
-      { name: 'Mar', serie1: 6000, serie2: 5000, serie3: 4000 },
-      { name: 'Abr', serie1: 6500, serie2: 5500, serie3: 4500 },
-      { name: 'May', serie1: 7000, serie2: 6000, serie3: 5000 },
-      { name: 'Jun', serie1: 7500, serie2: 6500, serie3: 5500 },
+      { name: 'Ene', value: 5000, serie1: 5000, serie2: 4000, serie3: 3000 },
+      { name: 'Feb', value: 5500, serie1: 5500, serie2: 4500, serie3: 3500 },
+      { name: 'Mar', value: 6000, serie1: 6000, serie2: 5000, serie3: 4000 },
+      { name: 'Abr', value: 6500, serie1: 6500, serie2: 5500, serie3: 4500 },
+      { name: 'May', value: 7000, serie1: 7000, serie2: 6000, serie3: 5000 },
+      { name: 'Jun', value: 7500, serie1: 7500, serie2: 6500, serie3: 5500 },
     ],
     distributionData: [
       { name: 'Software', value: 600 },
@@ -239,12 +238,12 @@ const DATA: Record<string, IndustryData> = {
       { name: 'Jul', value: 2600, actual: 2600, previo: 2400 },
     ],
     performanceData: [
-      { name: 'Ene', serie1: 1000, serie2: 800, serie3: 600 },
-      { name: 'Feb', serie1: 1100, serie2: 900, serie3: 700 },
-      { name: 'Mar', serie1: 1200, serie2: 1000, serie3: 800 },
-      { name: 'Abr', serie1: 1300, serie2: 1100, serie3: 900 },
-      { name: 'May', serie1: 1400, serie2: 1200, serie3: 1000 },
-      { name: 'Jun', serie1: 1500, serie2: 1300, serie3: 1100 },
+      { name: 'Ene', value: 1000, serie1: 1000, serie2: 800, serie3: 600 },
+      { name: 'Feb', value: 1100, serie1: 1100, serie2: 900, serie3: 700 },
+      { name: 'Mar', value: 1200, serie1: 1200, serie2: 1000, serie3: 800 },
+      { name: 'Abr', value: 1300, serie1: 1300, serie2: 1100, serie3: 900 },
+      { name: 'May', value: 1400, serie1: 1400, serie2: 1200, serie3: 1000 },
+      { name: 'Jun', value: 1500, serie1: 1500, serie2: 1300, serie3: 1100 },
     ],
     distributionData: [
       { name: 'Pregrado', value: 400 },

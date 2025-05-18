@@ -2,8 +2,16 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
+import { ArrowDownIcon, ArrowUpIcon, HelpCircleIcon } from "lucide-react";
 import { formatNumber } from "@/lib/api";
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from "@/components/ui/tooltip";
+import IndustryFieldsDropdown from './IndustryFieldsDropdown';
+import { toast } from "sonner";
 
 interface StatCardProps {
   title: string;
@@ -47,15 +55,50 @@ interface ChartContainerProps {
   title: string;
   children: React.ReactNode;
   className?: string;
+  industry?: string;
+  description?: string;
 }
 
-export const ChartContainer = ({ title, children, className }: ChartContainerProps) => {
+export const ChartContainer = ({ 
+  title, 
+  children, 
+  className, 
+  industry = "retail",
+  description
+}: ChartContainerProps) => {
+  const handleFieldChange = (field: string) => {
+    toast.info(`Seleccionado: ${field}`, {
+      description: "En una implementación real, esto filtraría los datos para mostrar este campo específico."
+    });
+  };
+
   return (
     <Card className={className}>
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-medium">
-          {title}
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-lg font-medium">
+              {title}
+            </CardTitle>
+            {description && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircleIcon className="h-4 w-4 text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs text-sm">{description}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
+        </div>
+        {industry && (
+          <div className="mt-2 pt-2 border-t">
+            <IndustryFieldsDropdown industry={industry} onChange={handleFieldChange} />
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         {children}
