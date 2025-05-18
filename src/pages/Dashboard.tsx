@@ -1,0 +1,306 @@
+
+import React, { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { BarChart, PieChart, AreaChart, ArrowLeft, Download } from "lucide-react";
+import { toast } from "sonner";
+
+import { getIndustryData, getExcelTemplate, IndustryData } from '@/lib/api';
+import {
+  SimpleBarChart,
+  GroupedBarChart,
+  SimpleLineChart,
+  SimplePieChart,
+  SimpleAreaChart,
+  MultiLineChart
+} from '@/components/ChartComponents';
+import { StatCard, ChartContainer } from '@/components/DashboardComponents';
+
+// Mapeo de industrias a nombres en español
+const industryNames: Record<string, string> = {
+  retail: "Retail",
+  finanzas: "Servicios Financieros",
+  salud: "Salud",
+  manufactura: "Manufactura",
+  tecnologia: "Tecnología",
+  educacion: "Educación"
+};
+
+// Componente para mostrar un estado de carga para los gráficos
+const ChartSkeleton = () => (
+  <div className="w-full space-y-3">
+    <Skeleton className="h-8 w-40" />
+    <Skeleton className="h-[250px] w-full" />
+  </div>
+);
+
+const Dashboard = () => {
+  const { industry } = useParams<{ industry: string }>();
+  const [data, setData] = useState<IndustryData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [activeTab, setActiveTab] = useState<string>("overview");
+
+  // Nombre de la industria para mostrar
+  const industryName = industry ? industryNames[industry] || "General" : "General";
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        if (industry) {
+          const industryData = await getIndustryData(industry);
+          setData(industryData);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toast.error("Error al cargar los datos");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [industry]);
+
+  const handleDownloadTemplate = () => {
+    if (!industry) return;
+    
+    const templateName = getExcelTemplate(industry);
+    
+    // En un entorno real, aquí se generaría una descarga real
+    // Para este demo, solo mostramos una notificación
+    toast.success(`Plantilla "${templateName}" lista para descargar`, {
+      description: "En una implementación real, esto iniciaría la descarga del archivo Excel",
+      duration: 5000,
+    });
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      {/* Header */}
+      <header className="w-full py-4 px-6 bg-white border-b sticky top-0 z-10">
+        <div className="container mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <BarChart className="h-6 w-6 text-primary" />
+            <Link to="/" className="text-2xl font-bold text-primary">DataViz Pro</Link>
+          </div>
+          <div className="flex items-center space-x-4">
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/industries" className="flex items-center gap-1">
+                <ArrowLeft className="h-4 w-4" />
+                Volver a industrias
+              </Link>
+            </Button>
+            <Button size="sm" onClick={handleDownloadTemplate} className="flex items-center gap-2">
+              <Download className="h-4 w-4" />
+              Descargar plantilla Excel
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Dashboard Content */}
+      <main className="flex-grow py-6 px-6">
+        <div className="container mx-auto">
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold">Dashboard: {industryName}</h1>
+            <p className="text-muted-foreground mt-1">
+              Análisis y visualización de datos específicos para el sector de {industryName.toLowerCase()}.
+            </p>
+          </div>
+
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <div className="border-b">
+              <div className="container mx-auto">
+                <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4">
+                  <TabsTrigger value="overview">Visión general</TabsTrigger>
+                  <TabsTrigger value="trends">Tendencias</TabsTrigger>
+                  <TabsTrigger value="detail">Detalle</TabsTrigger>
+                  <TabsTrigger value="comparison">Comparativa</TabsTrigger>
+                </TabsList>
+              </div>
+            </div>
+
+            {/* Visión general */}
+            <TabsContent value="overview" className="space-y-6">
+              {/* KPIs */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {loading ? (
+                  <>
+                    {[1, 2, 3, 4].map((i) => (
+                      <Card key={i}>
+                        <CardContent className="p-6">
+                          <Skeleton className="h-4 w-[150px] mb-2" />
+                          <Skeleton className="h-8 w-[100px]" />
+                          <div className="flex items-center mt-1">
+                            <Skeleton className="h-4 w-4 mr-1" />
+                            <Skeleton className="h-4 w-[60px]" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </>
+                ) : (
+                  data && Object.entries(data.kpis).map(([key, kpi]) => (
+                    <StatCard 
+                      key={key}
+                      title={kpi.label}
+                      value={kpi.value}
+                      change={kpi.change}
+                    />
+                  ))
+                )}
+              </div>
+
+              {/* Charts Row 1 */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {loading ? (
+                  <>
+                    <ChartSkeleton />
+                    <ChartSkeleton />
+                  </>
+                ) : (
+                  data && (
+                    <>
+                      <ChartContainer title="Distribución de ventas">
+                        <SimplePieChart data={data.distributionData} />
+                      </ChartContainer>
+                      <ChartContainer title="Tendencia de ventas">
+                        <SimpleBarChart data={data.salesData} />
+                      </ChartContainer>
+                    </>
+                  )
+                )}
+              </div>
+            </TabsContent>
+
+            {/* Tendencias */}
+            <TabsContent value="trends" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {loading ? (
+                  <>
+                    <ChartSkeleton />
+                    <ChartSkeleton />
+                  </>
+                ) : (
+                  data && (
+                    <>
+                      <ChartContainer title="Evolución temporal">
+                        <SimpleAreaChart data={data.trendsData} />
+                      </ChartContainer>
+                      <ChartContainer title="Métricas principales">
+                        <MultiLineChart data={data.performanceData} />
+                      </ChartContainer>
+                    </>
+                  )
+                )}
+              </div>
+            </TabsContent>
+
+            {/* Detalle */}
+            <TabsContent value="detail" className="space-y-6">
+              <div className="grid grid-cols-1 gap-6">
+                {loading ? (
+                  <ChartSkeleton />
+                ) : (
+                  data && (
+                    <ChartContainer title="Análisis detallado por periodo">
+                      <SimpleLineChart data={data.salesData} height={400} />
+                    </ChartContainer>
+                  )
+                )}
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {loading ? (
+                  <>
+                    <ChartSkeleton />
+                    <ChartSkeleton />
+                  </>
+                ) : (
+                  data && (
+                    <>
+                      <ChartContainer title="Distribución por categoría">
+                        <SimplePieChart data={data.distributionData} />
+                      </ChartContainer>
+                      <ChartContainer title="Rendimiento individual">
+                        <SimpleBarChart data={data.salesData} />
+                      </ChartContainer>
+                    </>
+                  )
+                )}
+              </div>
+            </TabsContent>
+
+            {/* Comparativa */}
+            <TabsContent value="comparison" className="space-y-6">
+              <div className="grid grid-cols-1 gap-6">
+                {loading ? (
+                  <ChartSkeleton />
+                ) : (
+                  data && (
+                    <ChartContainer title="Comparativa con periodo anterior">
+                      <GroupedBarChart data={data.salesData} height={400} />
+                    </ChartContainer>
+                  )
+                )}
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {loading ? (
+                  <>
+                    <ChartSkeleton />
+                    <ChartSkeleton />
+                  </>
+                ) : (
+                  data && (
+                    <>
+                      <ChartContainer title="Rendimiento comparativo">
+                        <MultiLineChart data={data.performanceData} />
+                      </ChartContainer>
+                      <ChartContainer title="Distribución comparativa">
+                        <SimpleBarChart data={data.distributionData} />
+                      </ChartContainer>
+                    </>
+                  )
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <div className="mt-8 rounded-lg bg-blue-50 p-4 border border-blue-200">
+            <h3 className="text-lg font-medium text-blue-800 mb-2">Conexión con backend FastAPI</h3>
+            <p className="text-blue-700 mb-4">
+              En una implementación real, estos datos se obtendrían de una API en FastAPI que podría:
+            </p>
+            <ul className="list-disc pl-5 space-y-1 text-blue-700">
+              <li>Conectarse a bases de datos SQL o NoSQL (Supabase, MongoDB, etc.)</li>
+              <li>Procesar datos en tiempo real</li>
+              <li>Realizar análisis estadísticos avanzados</li>
+              <li>Generar reportes personalizados en Excel, PDF, etc.</li>
+              <li>Aplicar modelos de machine learning para predicciones</li>
+            </ul>
+          </div>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-white py-6 px-6 border-t">
+        <div className="container mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="flex items-center gap-2 mb-4 md:mb-0">
+              <BarChart className="h-5 w-5 text-primary" />
+              <span className="font-bold">DataViz Pro</span>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              &copy; {new Date().getFullYear()} DataViz Pro. Todos los derechos reservados.
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default Dashboard;
