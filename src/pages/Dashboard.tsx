@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -17,7 +16,7 @@ import {
   SimpleAreaChart,
   MultiLineChart
 } from '@/components/ChartComponents';
-import { StatCard, ChartContainer } from '@/components/DashboardComponents';
+import { StatCard, ChartContainer, MlModelInfo } from '@/components/DashboardComponents';
 
 // Mapeo de industrias a nombres en español
 const industryNames: Record<string, string> = {
@@ -178,11 +177,12 @@ const Dashboard = () => {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <div className="border-b">
               <div className="container mx-auto">
-                <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4">
+                <TabsList className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-5">
                   <TabsTrigger value="overview">Visión general</TabsTrigger>
                   <TabsTrigger value="trends">Tendencias</TabsTrigger>
                   <TabsTrigger value="detail">Detalle</TabsTrigger>
                   <TabsTrigger value="comparison">Comparativa</TabsTrigger>
+                  <TabsTrigger value="ml">Modelos ML</TabsTrigger>
                 </TabsList>
               </div>
             </div>
@@ -370,6 +370,87 @@ const Dashboard = () => {
                 )}
               </div>
             </TabsContent>
+
+            {/* Nueva pestaña de Modelos ML */}
+            <TabsContent value="ml" className="space-y-6">
+              <div className="grid grid-cols-1 gap-6">
+                {loading ? (
+                  <Card><CardContent className="p-6"><Skeleton className="h-[400px]" /></CardContent></Card>
+                ) : (
+                  <>
+                    <MlModelInfo industry={industry || "retail"} />
+                    <div className="bg-blue-50 p-6 border border-blue-200 rounded-lg">
+                      <h3 className="text-lg font-medium text-blue-800 mb-4">Plantillas de Excel para análisis avanzado</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <Card>
+                          <CardContent className="pt-6">
+                            <h4 className="font-medium mb-2">Plantilla SARIMA</h4>
+                            <p className="text-sm text-muted-foreground mb-4">
+                              Para análisis de series temporales con componentes estacionales.
+                            </p>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="w-full" 
+                              onClick={() => {
+                                toast.success(`Descargando plantilla SARIMA para ${industryName}`, {
+                                  description: "Incluye columnas para datos históricos, factores estacionales y variables externas."
+                                });
+                              }}
+                            >
+                              <Download className="h-4 w-4 mr-2" />
+                              Descargar SARIMA
+                            </Button>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="pt-6">
+                            <h4 className="font-medium mb-2">Plantilla Prophet</h4>
+                            <p className="text-sm text-muted-foreground mb-4">
+                              Para pronósticos avanzados con múltiples factores estacionales.
+                            </p>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="w-full" 
+                              onClick={() => {
+                                toast.success(`Descargando plantilla Prophet para ${industryName}`, {
+                                  description: "Incluye columnas para fechas, valores, eventos y factores externos."
+                                });
+                              }}
+                            >
+                              <Download className="h-4 w-4 mr-2" />
+                              Descargar Prophet
+                            </Button>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="pt-6">
+                            <h4 className="font-medium mb-2">Plantilla K-means</h4>
+                            <p className="text-sm text-muted-foreground mb-4">
+                              Para segmentación de datos y análisis de clusters.
+                            </p>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="w-full" 
+                              onClick={() => {
+                                toast.success(`Descargando plantilla K-means para ${industryName}`, {
+                                  description: "Incluye columnas para características de segmentación y parámetros de clusters."
+                                });
+                              }}
+                            >
+                              <Download className="h-4 w-4 mr-2" />
+                              Descargar K-means
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </TabsContent>
           </Tabs>
 
           <div className="mt-8 rounded-lg bg-blue-50 p-4 border border-blue-200">
@@ -377,13 +458,20 @@ const Dashboard = () => {
             <p className="text-blue-700 mb-4">
               En una implementación real, estos datos se obtendrían de una API en FastAPI que podría:
             </p>
-            <ul className="list-disc pl-5 space-y-1 text-blue-700">
-              <li>Conectarse a bases de datos SQL o NoSQL (Supabase, MongoDB, etc.)</li>
-              <li>Procesar datos en tiempo real</li>
-              <li>Realizar análisis estadísticos avanzados</li>
-              <li>Generar reportes personalizados en Excel, PDF, etc.</li>
-              <li>Aplicar modelos de machine learning para predicciones</li>
-            </ul>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <ul className="list-disc pl-5 space-y-1 text-blue-700">
+                <li>Conectarse a bases de datos SQL o NoSQL (Supabase, MongoDB, etc.)</li>
+                <li>Procesar datos en tiempo real</li>
+                <li>Realizar análisis estadísticos avanzados</li>
+                <li>Generar reportes personalizados en Excel, PDF, etc.</li>
+              </ul>
+              <ul className="list-disc pl-5 space-y-1 text-blue-700">
+                <li>Aplicar modelos de machine learning como SARIMA para series temporales</li>
+                <li>Implementar Prophet para predicciones de inventario</li>
+                <li>Realizar segmentación de mercados con K-means</li>
+                <li>Integración con servicios de ML abiertos mediante MCP</li>
+              </ul>
+            </div>
           </div>
         </div>
       </main>

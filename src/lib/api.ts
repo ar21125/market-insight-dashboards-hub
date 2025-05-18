@@ -1,3 +1,4 @@
+
 // Simulación de API para los propósitos del demo
 // En un entorno real, esto se conectaría a una API de backend (FastAPI, etc.)
 
@@ -281,25 +282,307 @@ export const getIndustryData = async (industry: string): Promise<IndustryData> =
   });
 };
 
+// Estructura del template Excel por industria
+interface ExcelColumnDefinition {
+  name: string;
+  description: string;
+  example: string;
+}
+
+interface ExcelSheetDefinition {
+  name: string;
+  description: string;
+  columns: ExcelColumnDefinition[];
+}
+
+interface ExcelTemplate {
+  fileName: string;
+  description: string;
+  sheets: ExcelSheetDefinition[];
+}
+
+const EXCEL_TEMPLATES: Record<string, Record<string, ExcelTemplate>> = {
+  retail: {
+    general: {
+      fileName: "Plantilla_Retail_DataViz.xlsx",
+      description: "Template estándar para análisis de datos de retail",
+      sheets: [
+        {
+          name: "Ventas",
+          description: "Datos de ventas por producto, categoría y período",
+          columns: [
+            { name: "Fecha", description: "Fecha de la venta (YYYY-MM-DD)", example: "2025-01-15" },
+            { name: "Producto_ID", description: "Identificador único del producto", example: "P1001" },
+            { name: "Categoria", description: "Categoría del producto", example: "Electrónica" },
+            { name: "Unidades", description: "Cantidad vendida", example: "5" },
+            { name: "Precio_Unitario", description: "Precio por unidad", example: "299.99" },
+            { name: "Total", description: "Total de la venta", example: "1499.95" },
+            { name: "Tienda_ID", description: "Identificador de la tienda", example: "T103" },
+            { name: "Canal", description: "Canal de venta (online/físico)", example: "Online" }
+          ]
+        },
+        {
+          name: "Inventario",
+          description: "Datos de inventario y stock",
+          columns: [
+            { name: "Fecha", description: "Fecha del registro", example: "2025-01-15" },
+            { name: "Producto_ID", description: "Identificador único del producto", example: "P1001" },
+            { name: "Stock_Inicial", description: "Stock al inicio del periodo", example: "100" },
+            { name: "Entradas", description: "Unidades añadidas al inventario", example: "50" },
+            { name: "Salidas", description: "Unidades vendidas o retiradas", example: "35" },
+            { name: "Stock_Final", description: "Stock al final del periodo", example: "115" },
+            { name: "Almacen_ID", description: "Identificador del almacén", example: "A02" }
+          ]
+        }
+      ]
+    },
+    sarima: {
+      fileName: "Plantilla_Retail_SARIMA.xlsx",
+      description: "Template para análisis de series temporales con SARIMA",
+      sheets: [
+        {
+          name: "Datos_Historicos",
+          description: "Serie temporal de ventas históricas para análisis SARIMA",
+          columns: [
+            { name: "Fecha", description: "Fecha del registro (YYYY-MM-DD)", example: "2025-01-15" },
+            { name: "Ventas", description: "Valor de ventas del período", example: "15000" },
+            { name: "Temporada", description: "Temporada (verano, navidad, etc)", example: "Navidad" },
+            { name: "Promocion", description: "¿Hubo promoción? (1=Sí, 0=No)", example: "1" },
+            { name: "Precio_Promedio", description: "Precio promedio de productos", example: "45.50" },
+            { name: "Competidores_Activos", description: "Número de competidores activos", example: "5" }
+          ]
+        },
+        {
+          name: "Variables_Externas",
+          description: "Variables externas que pueden afectar el modelo",
+          columns: [
+            { name: "Fecha", description: "Fecha del registro (YYYY-MM-DD)", example: "2025-01-15" },
+            { name: "Desempleo", description: "Tasa de desempleo local (%)", example: "5.2" },
+            { name: "Inflacion", description: "Tasa de inflación mensual (%)", example: "0.3" },
+            { name: "Confianza_Consumidor", description: "Índice de confianza del consumidor", example: "98.5" },
+            { name: "Temp_Promedio", description: "Temperatura promedio (°C)", example: "22.5" }
+          ]
+        }
+      ]
+    },
+    prophet: {
+      fileName: "Plantilla_Retail_Prophet.xlsx",
+      description: "Template para pronósticos con Prophet",
+      sheets: [
+        {
+          name: "Datos_Serie",
+          description: "Datos históricos para Prophet",
+          columns: [
+            { name: "ds", description: "Fecha (YYYY-MM-DD)", example: "2025-01-15" },
+            { name: "y", description: "Valor a predecir (ventas, inventario, etc)", example: "15000" },
+            { name: "cap", description: "Capacidad máxima (opcional)", example: "30000" },
+            { name: "floor", description: "Valor mínimo (opcional)", example: "5000" }
+          ]
+        },
+        {
+          name: "Eventos_Especiales",
+          description: "Eventos que afectan la demanda",
+          columns: [
+            { name: "ds", description: "Fecha del evento (YYYY-MM-DD)", example: "2025-12-25" },
+            { name: "holiday", description: "Nombre del evento", example: "Navidad" },
+            { name: "lower_window", description: "Días antes del impacto", example: "-3" },
+            { name: "upper_window", description: "Días después del impacto", example: "1" }
+          ]
+        },
+        {
+          name: "Regresores",
+          description: "Variables adicionales que afectan el modelo",
+          columns: [
+            { name: "ds", description: "Fecha (YYYY-MM-DD)", example: "2025-01-15" },
+            { name: "precio", description: "Precio promedio", example: "45.5" },
+            { name: "marketing", description: "Gasto en marketing", example: "5000" },
+            { name: "competencia", description: "Actividad competidores (1-10)", example: "7" }
+          ]
+        }
+      ]
+    },
+    kmeans: {
+      fileName: "Plantilla_Retail_Kmeans.xlsx",
+      description: "Template para segmentación con K-means",
+      sheets: [
+        {
+          name: "Clientes",
+          description: "Datos de clientes para segmentación",
+          columns: [
+            { name: "Cliente_ID", description: "Identificador único del cliente", example: "C1001" },
+            { name: "Frecuencia", description: "Número de compras en último año", example: "12" },
+            { name: "Recencia", description: "Días desde última compra", example: "30" },
+            { name: "Monetario", description: "Valor total de compras último año", example: "1500" },
+            { name: "Edad", description: "Edad del cliente", example: "35" },
+            { name: "Genero", description: "Género (para análisis demográfico)", example: "F" },
+            { name: "Productos_Unicos", description: "Número de productos distintos comprados", example: "8" },
+            { name: "Compra_Online", description: "% de compras online", example: "75" }
+          ]
+        },
+        {
+          name: "Productos",
+          description: "Datos de productos para segmentación",
+          columns: [
+            { name: "Producto_ID", description: "Identificador único del producto", example: "P1001" },
+            { name: "Precio", description: "Precio del producto", example: "199.99" },
+            { name: "Rotacion", description: "Índice de rotación (1-10)", example: "8" },
+            { name: "Margen", description: "Margen de beneficio (%)", example: "35" },
+            { name: "Devoluciones", description: "Tasa de devolución (%)", example: "2.5" },
+            { name: "Espacio_Estanteria", description: "Espacio ocupado (m²)", example: "0.5" },
+            { name: "Dias_Inventario", description: "Días promedio en inventario", example: "15" }
+          ]
+        }
+      ]
+    }
+  },
+  finanzas: {
+    general: {
+      fileName: "Plantilla_Finanzas_DataViz.xlsx",
+      description: "Template estándar para análisis de datos financieros",
+      sheets: [
+        {
+          name: "Transacciones",
+          description: "Datos de transacciones financieras",
+          columns: [
+            { name: "Fecha", description: "Fecha de la transacción", example: "2025-01-15" },
+            { name: "Cliente_ID", description: "Identificador del cliente", example: "C2001" },
+            { name: "Tipo_Transaccion", description: "Tipo de transacción", example: "Depósito" },
+            { name: "Producto", description: "Producto financiero", example: "Cuenta Corriente" },
+            { name: "Monto", description: "Monto de la transacción", example: "5000" },
+            { name: "Canal", description: "Canal de la transacción", example: "Móvil" },
+            { name: "Sucursal_ID", description: "ID de la sucursal (si aplica)", example: "S105" }
+          ]
+        },
+        {
+          name: "Clientes",
+          description: "Datos de clientes",
+          columns: [
+            { name: "Cliente_ID", description: "Identificador del cliente", example: "C2001" },
+            { name: "Segmento", description: "Segmento del cliente", example: "Premium" },
+            { name: "Antiguedad", description: "Años como cliente", example: "5.2" },
+            { name: "Productos", description: "Número de productos", example: "3" },
+            { name: "Valor_Cartera", description: "Valor total de la cartera", example: "250000" },
+            { name: "Riesgo", description: "Puntuación de riesgo (1-10)", example: "3" }
+          ]
+        }
+      ]
+    },
+    sarima: {
+      fileName: "Plantilla_Finanzas_SARIMA.xlsx",
+      description: "Template para análisis de series temporales financieras",
+      sheets: [
+        {
+          name: "Serie_Temporal",
+          description: "Datos históricos para análisis SARIMA",
+          columns: [
+            { name: "Fecha", description: "Fecha del registro (YYYY-MM-DD)", example: "2025-01-15" },
+            { name: "Valor_Activo", description: "Valor del activo/índice", example: "1250.75" },
+            { name: "Volumen", description: "Volumen de transacciones", example: "1500000" },
+            { name: "Volatilidad", description: "Volatilidad del período", example: "0.025" },
+            { name: "Tasa_Interes", description: "Tasa de interés de referencia", example: "0.0275" }
+          ]
+        },
+        {
+          name: "Indicadores_Macro",
+          description: "Indicadores macroeconómicos",
+          columns: [
+            { name: "Fecha", description: "Fecha del registro", example: "2025-01-15" },
+            { name: "PIB_Var", description: "Variación del PIB (%)", example: "0.8" },
+            { name: "Inflacion", description: "Tasa de inflación (%)", example: "0.3" },
+            { name: "Desempleo", description: "Tasa de desempleo (%)", example: "5.2" },
+            { name: "Moneda_Ref", description: "Tipo de cambio principal", example: "1.15" }
+          ]
+        }
+      ]
+    },
+    prophet: {
+      fileName: "Plantilla_Finanzas_Prophet.xlsx",
+      description: "Template para predicción de indicadores financieros",
+      sheets: [
+        {
+          name: "Serie_Principal",
+          description: "Datos históricos para Prophet",
+          columns: [
+            { name: "ds", description: "Fecha (YYYY-MM-DD)", example: "2025-01-15" },
+            { name: "y", description: "Valor a predecir", example: "1250.75" }
+          ]
+        },
+        {
+          name: "Eventos_Mercado",
+          description: "Eventos significativos del mercado",
+          columns: [
+            { name: "ds", description: "Fecha del evento", example: "2025-03-15" },
+            { name: "holiday", description: "Descripción del evento", example: "Anuncio Fed" },
+            { name: "lower_window", description: "Días antes del impacto", example: "-1" },
+            { name: "upper_window", description: "Días después del impacto", example: "3" }
+          ]
+        },
+        {
+          name: "Regresores",
+          description: "Variables adicionales para el modelo",
+          columns: [
+            { name: "ds", description: "Fecha", example: "2025-01-15" },
+            { name: "tasa_ref", description: "Tasa de referencia", example: "0.0275" },
+            { name: "spread", description: "Diferencial de rendimiento", example: "0.015" },
+            { name: "volatilidad", description: "Índice de volatilidad", example: "18.5" }
+          ]
+        }
+      ]
+    },
+    kmeans: {
+      fileName: "Plantilla_Finanzas_Kmeans.xlsx",
+      description: "Template para segmentación de clientes financieros",
+      sheets: [
+        {
+          name: "Clientes",
+          description: "Datos de clientes para segmentación",
+          columns: [
+            { name: "Cliente_ID", description: "Identificador del cliente", example: "C2001" },
+            { name: "Edad", description: "Edad del cliente", example: "42" },
+            { name: "Ingresos", description: "Ingresos mensuales", example: "7500" },
+            { name: "Valor_Activos", description: "Valor total activos", example: "350000" },
+            { name: "Pasivos", description: "Total pasivos", example: "120000" },
+            { name: "Riesgo_Credito", description: "Puntuación de riesgo", example: "720" },
+            { name: "Antiguedad", description: "Años como cliente", example: "8.5" },
+            { name: "Productos", description: "Número de productos", example: "5" },
+            { name: "Transacciones_Mens", description: "Transacciones mensuales", example: "35" }
+          ]
+        },
+        {
+          name: "Comportamiento",
+          description: "Comportamiento financiero de clientes",
+          columns: [
+            { name: "Cliente_ID", description: "Identificador del cliente", example: "C2001" },
+            { name: "Uso_Banca_Online", description: "% uso de banca online", example: "85" },
+            { name: "Uso_Credito", description: "% utilización de crédito", example: "65" },
+            { name: "Morosidad", description: "Días de morosidad último año", example: "0" },
+            { name: "Inversiones", description: "% cartera en inversiones", example: "40" },
+            { name: "Ahorro", description: "% cartera en ahorro", example: "35" },
+            { name: "Seguros", description: "Número de seguros contratados", example: "3" }
+          ]
+        }
+      ]
+    }
+  },
+  // Definir templates para otras industrias siguiendo el mismo patrón
+};
+
 // Función para obtener una plantilla Excel para una industria específica
-export const getExcelTemplate = (industry: string): string => {
+export const getExcelTemplate = (industry: string, type: string = 'general'): string => {
   // En un entorno real, esto generaría un Excel real o devolvería una URL para descarga
-  // Para este demo, simplemente retornamos un blob URL simulado
+  
+  // Obtenemos las plantillas para la industria
+  const industryTemplates = EXCEL_TEMPLATES[industry] || EXCEL_TEMPLATES.retail;
+  const template = industryTemplates[type] || industryTemplates.general;
   
   // Notificamos al usuario que se inició la descarga
-  toast.success("Descargando plantilla de Excel");
+  toast.success(`Descargando plantilla: ${template.fileName}`, {
+    description: template.description,
+    duration: 3000,
+  });
   
-  // En una implementación real, aquí se generaría un archivo Excel real
-  const templates: Record<string, string> = {
-    retail: "Plantilla_Retail_DataViz.xlsx",
-    finanzas: "Plantilla_Finanzas_DataViz.xlsx",
-    salud: "Plantilla_Salud_DataViz.xlsx",
-    manufactura: "Plantilla_Manufactura_DataViz.xlsx",
-    tecnologia: "Plantilla_Tecnologia_DataViz.xlsx",
-    educacion: "Plantilla_Educacion_DataViz.xlsx",
-  };
-  
-  return templates[industry] || templates.retail;
+  // En una implementación real, aquí se generaría un archivo Excel real basado en la definición
+  return template.fileName;
 };
 
 // Función para formatear números para su visualización

@@ -106,3 +106,71 @@ export const ChartContainer = ({
     </Card>
   );
 };
+
+interface MlModelInfoProps {
+  industry: string;
+}
+
+export const MlModelInfo: React.FC<MlModelInfoProps> = ({ industry }) => {
+  const modelInfo = {
+    sarima: {
+      title: "Análisis SARIMA",
+      description: "Modelo estadístico para análisis de series temporales con factores estacionales.",
+      applications: {
+        retail: "Predicción de ventas estacionales y demanda de productos.",
+        finanzas: "Análisis de tendencias en mercados financieros y previsión de resultados.",
+        salud: "Predicción de ocupación hospitalaria y demanda estacional de servicios.",
+        manufactura: "Previsión de producción y demanda de inventarios con factores estacionales.",
+        tecnologia: "Análisis de patrones de uso y predicción de tendencias de usuarios.",
+        educacion: "Proyección de matriculaciones y abandono con factores estacionales."
+      }
+    },
+    prophet: {
+      title: "Modelo Prophet",
+      description: "Algoritmo de Meta para pronósticos de series temporales con múltiples estacionalidades.",
+      applications: {
+        retail: "Gestión avanzada de inventarios y personal basado en tendencias.",
+        finanzas: "Predicción de rendimientos y volatilidad de mercados.",
+        salud: "Previsión de necesidades de recursos médicos y personal.",
+        manufactura: "Optimización de cadena de suministro y previsión de mantenimiento.",
+        tecnologia: "Pronóstico de crecimiento y comportamiento de usuarios.",
+        educacion: "Análisis de tendencias educativas y asignación de recursos."
+      }
+    },
+    kmeans: {
+      title: "Segmentación K-means",
+      description: "Algoritmo de clustering para segmentar datos en grupos con características similares.",
+      applications: {
+        retail: "Segmentación de clientes por patrones de compra y valor.",
+        finanzas: "Agrupación de clientes por perfil de riesgo y comportamiento.",
+        salud: "Segmentación de pacientes por perfiles de salud y tratamientos.",
+        manufactura: "Detección de patrones de producción y calidad.",
+        tecnologia: "Agrupación de usuarios por comportamiento y perfil de uso.",
+        educacion: "Segmentación de estudiantes por rendimiento y necesidades."
+      }
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">Modelos de Machine Learning disponibles</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {Object.entries(modelInfo).map(([key, model]) => (
+          <div key={key} className="space-y-2">
+            <h3 className="font-medium text-md">{model.title}</h3>
+            <p className="text-muted-foreground text-sm">{model.description}</p>
+            <div className="bg-slate-50 p-3 rounded-md text-sm">
+              <strong>Aplicación en {industry}:</strong> {model.applications[industry as keyof typeof model.applications]}
+            </div>
+          </div>
+        ))}
+        
+        <div className="mt-4 pt-4 border-t text-sm text-muted-foreground">
+          <p>Para utilizar estos modelos, descargue la plantilla Excel y complete los datos requeridos.</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
