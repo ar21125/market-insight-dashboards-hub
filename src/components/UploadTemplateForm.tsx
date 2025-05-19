@@ -10,6 +10,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Upload, FileSpreadsheet } from "lucide-react";
+import { mlService } from '@/services/mlService';
+import { toast } from "sonner";
 
 interface UploadTemplateFormProps {
   industry: string;
@@ -20,6 +22,7 @@ export const UploadTemplateForm: React.FC<UploadTemplateFormProps> = ({ industry
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [modelType, setModelType] = useState<string>('sarima');
   const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -45,10 +48,27 @@ export const UploadTemplateForm: React.FC<UploadTemplateFormProps> = ({ industry
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedFile && modelType) {
-      onUpload(selectedFile, modelType);
+      setIsUploading(true);
+      
+      try {
+        await mlService.uploadForAnalysis({
+          file: selectedFile,
+          industry,
+          modelType
+        });
+        
+        // Call the parent callback
+        onUpload(selectedFile, modelType);
+        
+      } catch (error) {
+        toast.error("Error uploading file for analysis");
+        console.error("Upload error:", error);
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
@@ -125,10 +145,10 @@ export const UploadTemplateForm: React.FC<UploadTemplateFormProps> = ({ industry
       <Button 
         type="submit" 
         className="w-full"
-        disabled={!selectedFile}
+        disabled={!selectedFile || isUploading}
       >
         <Upload className="h-4 w-4 mr-2" />
-        Procesar datos
+        {isUploading ? 'Procesando...' : 'Procesar datos'}
       </Button>
     </form>
   );

@@ -9,7 +9,119 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      analysis_results: {
+        Row: {
+          created_at: string | null
+          file_id: string | null
+          id: string
+          industry: string
+          metrics: Json | null
+          model_type: string
+          result: Json | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_id?: string | null
+          id?: string
+          industry: string
+          metrics?: Json | null
+          model_type: string
+          result?: Json | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          file_id?: string | null
+          id?: string
+          industry?: string
+          metrics?: Json | null
+          model_type?: string
+          result?: Json | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analysis_results_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "uploaded_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ml_models: {
+        Row: {
+          created_at: string | null
+          id: string
+          industry: string
+          is_active: boolean | null
+          model_type: string
+          name: string
+          parameters: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          industry: string
+          is_active?: boolean | null
+          model_type: string
+          name: string
+          parameters?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          industry?: string
+          is_active?: boolean | null
+          model_type?: string
+          name?: string
+          parameters?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      uploaded_files: {
+        Row: {
+          created_at: string | null
+          file_name: string
+          file_path: string
+          id: string
+          industry: string
+          model_type: string
+          result_id: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_name: string
+          file_path: string
+          id?: string
+          industry: string
+          model_type: string
+          result_id?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          file_name?: string
+          file_path?: string
+          id?: string
+          industry?: string
+          model_type?: string
+          result_id?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
