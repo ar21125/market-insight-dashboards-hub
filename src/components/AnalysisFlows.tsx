@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowRight, Clock, FileSearch, Activity, Download } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { ArrowRight, Clock, FileSearch, Activity, Download, Info, HelpCircle } from 'lucide-react';
 import { getAnalysisFlowsByIndustry, AnalysisFlow, getAnalysisFlowById } from '@/services/analysisFlowService';
 import { toast } from 'sonner';
 import { generateExcelTemplate, createTemplateSectionsFromFlow } from '@/utils/excelTemplateGenerator';
@@ -16,6 +17,7 @@ interface AnalysisFlowsProps {
 
 export const AnalysisFlows: React.FC<AnalysisFlowsProps> = ({ industry }) => {
   const [selectedFlow, setSelectedFlow] = useState<string | null>(null);
+  const [selectedStep, setSelectedStep] = useState<any | null>(null);
   const flows = getAnalysisFlowsByIndustry(industry);
 
   const handleDownloadTemplate = (flowId: string) => {
@@ -52,6 +54,174 @@ export const AnalysisFlows: React.FC<AnalysisFlowsProps> = ({ industry }) => {
       });
     }
   };
+
+  // Explanation modals content
+  const renderFlowExplanationContent = (flow: AnalysisFlow) => (
+    <>
+      <DialogHeader>
+        <DialogTitle className="text-xl">{flow.name}</DialogTitle>
+        <DialogDescription>
+          {flow.description}
+        </DialogDescription>
+      </DialogHeader>
+      <div className="py-4 space-y-4">
+        <div>
+          <h3 className="font-medium text-lg flex items-center gap-2">
+            <Activity className="h-5 w-5 text-primary" />
+            ¿Qué resuelve este flujo?
+          </h3>
+          <p className="mt-2 text-muted-foreground">
+            {flow.businessGoal}
+          </p>
+        </div>
+        
+        <div className="border-t pt-4">
+          <h3 className="font-medium text-lg">¿Cómo funciona?</h3>
+          <p className="mt-2 text-muted-foreground">
+            Este flujo de análisis combina {flow.steps.length} técnicas analíticas para proporcionar una visión
+            integral de su negocio. Cada paso se complementa con el anterior para obtener insights 
+            más profundos y accionables.
+          </p>
+        </div>
+        
+        <div className="border-t pt-4">
+          <h3 className="font-medium text-lg">¿Quién debería utilizarlo?</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+            {flow.recommendedFor?.map((role, i) => (
+              <div key={i} className="bg-slate-50 p-3 rounded-md">
+                <p className="font-medium">{role.title}</p>
+                <p className="text-sm text-muted-foreground">{role.reason}</p>
+              </div>
+            ))}
+            {!flow.recommendedFor && (
+              <p className="text-muted-foreground">
+                Recomendado para gerentes, analistas y tomadores de decisiones que necesitan una 
+                visión integral de su operación.
+              </p>
+            )}
+          </div>
+        </div>
+        
+        <div className="border-t pt-4">
+          <h3 className="font-medium text-lg">Requisitos para comenzar</h3>
+          <ul className="mt-2 space-y-2">
+            <li className="flex items-start gap-2">
+              <span className="bg-primary/20 text-primary h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+              <span>Descargue la plantilla Excel desde el botón "Descargar plantilla"</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="bg-primary/20 text-primary h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+              <span>Complete los datos solicitados en cada hoja de la plantilla</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="bg-primary/20 text-primary h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+              <span>Suba el archivo en la sección "Modelos ML" para ver los resultados</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <DialogFooter>
+        <Button variant="outline" onClick={() => handleDownloadTemplate(flow.id)}>
+          <Download className="mr-2 h-4 w-4" />
+          Descargar plantilla
+        </Button>
+      </DialogFooter>
+    </>
+  );
+
+  const renderStepExplanationContent = (step: any) => (
+    <>
+      <DialogHeader>
+        <DialogTitle className="text-xl">{step.name}</DialogTitle>
+        <DialogDescription>
+          Tipo de análisis: {step.modelType}
+        </DialogDescription>
+      </DialogHeader>
+      <div className="py-4 space-y-4">
+        <div>
+          <h3 className="font-medium text-lg">Descripción</h3>
+          <p className="mt-2 text-muted-foreground">
+            {step.description}
+          </p>
+        </div>
+        
+        <div className="border-t pt-4">
+          <h3 className="font-medium text-lg">¿Cómo funciona este análisis?</h3>
+          <p className="mt-2 text-muted-foreground">
+            {step.howItWorks || `Este análisis utiliza algoritmos especializados para procesar los datos 
+            proporcionados y generar insights importantes para su negocio. La técnica principal 
+            empleada es ${step.modelType}, que es particularmente efectiva para este tipo de datos.`}
+          </p>
+        </div>
+        
+        <div className="border-t pt-4">
+          <h3 className="font-medium text-lg">¿Qué beneficios obtendrá?</h3>
+          <ul className="mt-2 space-y-2">
+            {step.benefits ? (
+              step.benefits.map((benefit: string, i: number) => (
+                <li key={i} className="flex items-start gap-2">
+                  <ArrowRight className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
+                  <span>{benefit}</span>
+                </li>
+              ))
+            ) : (
+              <>
+                <li className="flex items-start gap-2">
+                  <ArrowRight className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
+                  <span>Obtener insights precisos sobre sus datos</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <ArrowRight className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
+                  <span>Identificar patrones que podrían pasar desapercibidos</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <ArrowRight className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
+                  <span>Tomar decisiones basadas en evidencia estadística</span>
+                </li>
+              </>
+            )}
+          </ul>
+        </div>
+        
+        <div className="border-t pt-4">
+          <h3 className="font-medium text-lg">Datos necesarios</h3>
+          <div className="mt-2 bg-slate-50 p-3 rounded-md space-y-3">
+            {step.inputFields.map((field: any, i: number) => (
+              <div key={i} className="flex items-start gap-2">
+                <Badge variant={field.required ? "default" : "outline"} className="mt-0.5">
+                  {field.required ? "Requerido" : "Opcional"}
+                </Badge>
+                <div>
+                  <p className="font-medium">{field.name}</p>
+                  <p className="text-sm text-muted-foreground">{field.description}</p>
+                  {field.example && (
+                    <p className="text-xs italic mt-0.5">Ejemplo: {field.example}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        <div className="border-t pt-4">
+          <h3 className="font-medium text-lg mb-2">Ejemplos de resultados</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {step.outputInsights.map((insight: any, i: number) => (
+              <div key={i} className="bg-slate-50 p-3 rounded-md">
+                <div className="flex items-center gap-1 mb-1">
+                  <span className="font-medium">{insight.name}</span>
+                  <Badge variant="outline" className="ml-auto">
+                    {insight.visualizationType}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">{insight.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
+  );
 
   if (flows.length === 0) {
     return (
@@ -95,6 +265,17 @@ export const AnalysisFlows: React.FC<AnalysisFlowsProps> = ({ industry }) => {
                       <Clock className="h-3 w-3" />
                       {flow.totalEstimatedTime}
                     </Badge>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="flex items-center gap-1">
+                          <Info className="h-4 w-4" />
+                          Más información
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl">
+                        {renderFlowExplanationContent(flow)}
+                      </DialogContent>
+                    </Dialog>
                     <Button 
                       size="sm" 
                       onClick={() => handleDownloadTemplate(flow.id)}
@@ -147,7 +328,20 @@ export const AnalysisFlows: React.FC<AnalysisFlowsProps> = ({ industry }) => {
                           </AccordionTrigger>
                           <AccordionContent className="px-3">
                             <div className="space-y-4">
-                              <p className="text-sm">{step.description}</p>
+                              <div className="flex items-start justify-between">
+                                <p className="text-sm">{step.description}</p>
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                                      <HelpCircle className="h-4 w-4" />
+                                      Explicación 
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent className="max-w-2xl">
+                                    {renderStepExplanationContent(step)}
+                                  </DialogContent>
+                                </Dialog>
+                              </div>
                               
                               {/* Inputs needed */}
                               <div className="bg-muted/30 p-3 rounded-md">
@@ -161,7 +355,9 @@ export const AnalysisFlows: React.FC<AnalysisFlowsProps> = ({ industry }) => {
                                       <div>
                                         <span className="font-medium">{field.name}</span>
                                         <p className="text-muted-foreground text-xs">{field.description}</p>
-                                        <p className="text-xs italic mt-0.5">Ejemplo: {field.example}</p>
+                                        {field.example && (
+                                          <p className="text-xs italic mt-0.5">Ejemplo: {field.example}</p>
+                                        )}
                                       </div>
                                     </li>
                                   ))}
