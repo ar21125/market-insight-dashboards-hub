@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from "@/components/ui/button";
@@ -45,9 +46,19 @@ const formSchema = z.object({
 
 interface UploadTemplateFormProps {
   onUploadComplete: (modelType: string, results: any) => void;
+  industry?: string; // Added industry as an optional prop
 }
 
-export const UploadTemplateForm: React.FC<UploadTemplateFormProps> = ({ onUploadComplete }) => {
+// Define the parameter metadata interface
+interface ParameterMetadata {
+  name?: string;
+  description?: string;
+  type?: string;
+  required?: boolean;
+  example?: string; // Added example property to the interface
+}
+
+export const UploadTemplateForm: React.FC<UploadTemplateFormProps> = ({ onUploadComplete, industry }) => {
   const [file, setFile] = useState<File | null>(null);
   const [metadata, setMetadata] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -97,6 +108,11 @@ export const UploadTemplateForm: React.FC<UploadTemplateFormProps> = ({ onUpload
     formData.append("model_type", values.modelType);
     formData.append("file", file);
     
+    // Append industry if available
+    if (industry) {
+      formData.append("industry", industry);
+    }
+    
     // Append parameters to the formData
     if (values.parameters) {
       for (const key in values.parameters) {
@@ -136,7 +152,7 @@ export const UploadTemplateForm: React.FC<UploadTemplateFormProps> = ({ onUpload
     const parameters = Object.keys(metadata.parameters);
 
     return (
-      <Accordion type="multiple" collapsible>
+      <Accordion type="multiple">
         {parameters.map(param => (
           <AccordionItem value={param} key={param}>
             <AccordionTrigger className="data-[state=closed]:hover:bg-muted/50 px-3 rounded-md">
@@ -152,10 +168,9 @@ export const UploadTemplateForm: React.FC<UploadTemplateFormProps> = ({ onUpload
   };
 
   // Fix the type issues with parameter fields
-  // Around line 290, add type guards before accessing properties
-  const renderParameterField = (param: string, metadata: any) => {
+  const renderParameterField = (param: string, metadata: Record<string, ParameterMetadata>) => {
     // Add type guard to check if metadata[param] is an object with name and description properties
-    const paramMeta = metadata[param] as { name?: string; description?: string; type?: string; required?: boolean };
+    const paramMeta = metadata[param] as ParameterMetadata;
     
     return (
       <div key={param} className="space-y-2">
@@ -227,7 +242,7 @@ export const UploadTemplateForm: React.FC<UploadTemplateFormProps> = ({ onUpload
           <input {...getInputProps()} id="file" />
           {
             isDragActive ?
-              <p className="text-muted-foreground">Suelta el archivo aquí...</p> :
+              <p className="text-muted-foreground">Suelte el archivo aquí...</p> :
               <p className="text-muted-foreground">
                 Arrastra y suelta un archivo aquí, o haz clic para seleccionar un archivo
               </p>
