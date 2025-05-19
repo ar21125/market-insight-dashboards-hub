@@ -4,10 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BarChart, PieChart, AreaChart, ArrowLeft, Download } from "lucide-react";
+import { 
+  BarChart, 
+  PieChart, 
+  AreaChart, 
+  ArrowLeft, 
+  Download, 
+  Upload, 
+  FileSpreadsheet,
+  FileSearch,
+  FileText
+} from "lucide-react";
 import { toast } from "sonner";
 
-import { getIndustryData, getExcelTemplate, IndustryData } from '@/lib/api';
+import { getIndustryData, getExcelTemplate, getExcelFields, IndustryData } from '@/lib/api';
 import {
   SimpleBarChart,
   GroupedBarChart,
@@ -17,6 +27,7 @@ import {
   MultiLineChart
 } from '@/components/ChartComponents';
 import { StatCard, ChartContainer, MlModelInfo } from '@/components/DashboardComponents';
+import { UploadTemplateForm } from '@/components/UploadTemplateForm';
 
 // Mapeo de industrias a nombres en español
 const industryNames: Record<string, string> = {
@@ -102,6 +113,7 @@ const Dashboard = () => {
   const [data, setData] = useState<IndustryData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<string>("overview");
+  const [showUploadForm, setShowUploadForm] = useState<boolean>(false);
 
   // Nombre de la industria para mostrar
   const industryName = industry ? industryNames[industry] || "General" : "General";
@@ -131,12 +143,30 @@ const Dashboard = () => {
     if (!industry) return;
     
     const templateName = getExcelTemplate(industry, templateType);
+    const templateFields = getExcelFields(industry, templateType);
     
     // Simulación de descarga real con Blob
     setTimeout(() => {
-      // En una implementación real, aquí recibiríamos datos reales desde la API
-      const fakeData = "Datos de ejemplo para la plantilla " + industry + "_" + templateType;
-      const blob = new Blob([fakeData], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      // Crear un string CSV básico con los campos obtenidos para el template
+      let csvContent = "";
+      
+      // Si hay campos definidos para esta plantilla
+      if (templateFields && templateFields.length > 0) {
+        // Añadir encabezados
+        csvContent = templateFields.map(field => field.name).join('\t') + '\n';
+        
+        // Añadir una fila de ejemplo
+        csvContent += templateFields.map(field => field.example).join('\t') + '\n';
+        
+        // Añadir filas vacías para que el usuario complete
+        for (let i = 0; i < 3; i++) {
+          csvContent += templateFields.map(() => "").join('\t') + '\n';
+        }
+      } else {
+        csvContent = "No hay campos definidos para esta plantilla";
+      }
+      
+      const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel' });
       const url = window.URL.createObjectURL(blob);
       
       // Crear un elemento de enlace invisible para la descarga
@@ -152,10 +182,29 @@ const Dashboard = () => {
       document.body.removeChild(a);
       
       toast.success(`Descargando plantilla "${templateName}"`, {
-        description: "La plantilla se ha descargado correctamente",
+        description: "La plantilla se ha descargado correctamente con los campos necesarios",
         duration: 5000,
       });
     }, 500);
+  };
+
+  const handleUploadTemplate = (file: File, modelType: string) => {
+    // Simulación de proceso de carga y análisis
+    toast.info(`Procesando archivo: ${file.name}`, {
+      description: "Analizando datos y generando visualizaciones...",
+      duration: 3000,
+    });
+    
+    // Simulamos un procesamiento de archivo
+    setTimeout(() => {
+      toast.success("Análisis completado", {
+        description: `Dashboard generado para modelo ${modelType}. Los resultados están disponibles en la pestaña de resultados.`,
+        duration: 5000,
+      });
+      
+      // Cambiar a la pestaña de resultados automáticamente
+      setActiveTab("ml_results");
+    }, 2500);
   };
 
   return (
@@ -195,12 +244,13 @@ const Dashboard = () => {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <div className="border-b">
               <div className="container mx-auto">
-                <TabsList className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-5">
+                <TabsList className="grid grid-cols-2 md:grid-cols-6 lg:grid-cols-6">
                   <TabsTrigger value="overview">Visión general</TabsTrigger>
                   <TabsTrigger value="trends">Tendencias</TabsTrigger>
                   <TabsTrigger value="detail">Detalle</TabsTrigger>
                   <TabsTrigger value="comparison">Comparativa</TabsTrigger>
                   <TabsTrigger value="ml">Modelos ML</TabsTrigger>
+                  <TabsTrigger value="ml_results">Resultados ML</TabsTrigger>
                 </TabsList>
               </div>
             </div>
@@ -396,7 +446,57 @@ const Dashboard = () => {
                   <Card><CardContent className="p-6"><Skeleton className="h-[400px]" /></CardContent></Card>
                 ) : (
                   <>
+                    <div className="bg-blue-50 p-6 border border-blue-200 rounded-lg mb-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-medium text-blue-800">Analizar sus datos con Machine Learning</h3>
+                        <Button 
+                          onClick={() => setShowUploadForm(prev => !prev)} 
+                          variant="outline" 
+                          className="bg-white"
+                        >
+                          {showUploadForm ? "Ocultar formulario" : "Subir datos para análisis"}
+                        </Button>
+                      </div>
+                      
+                      {showUploadForm && (
+                        <div className="bg-white p-4 rounded-md border border-blue-100 mb-4">
+                          <UploadTemplateForm 
+                            industry={industry || "retail"} 
+                            onUpload={handleUploadTemplate} 
+                          />
+                        </div>
+                      )}
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-white p-4 rounded-md border border-slate-200">
+                          <h4 className="font-medium mb-2 flex items-center">
+                            <FileSpreadsheet className="h-5 w-5 mr-2 text-primary" />
+                            Cómo funciona
+                          </h4>
+                          <ol className="list-decimal pl-5 space-y-1 text-sm">
+                            <li>Descargue la plantilla Excel para el modelo que desea utilizar</li>
+                            <li>Complete los datos requeridos según las instrucciones</li>
+                            <li>Suba el archivo completo utilizando el formulario</li>
+                            <li>Visualice los resultados en la pestaña "Resultados ML"</li>
+                          </ol>
+                        </div>
+                        <div className="bg-white p-4 rounded-md border border-slate-200">
+                          <h4 className="font-medium mb-2 flex items-center">
+                            <FileSearch className="h-5 w-5 mr-2 text-primary" />
+                            Beneficios
+                          </h4>
+                          <ul className="list-disc pl-5 space-y-1 text-sm">
+                            <li>Análisis predictivo avanzado con sus propios datos</li>
+                            <li>Visualizaciones personalizadas basadas en modelos estadísticos</li>
+                            <li>Detección de patrones y tendencias ocultas</li>
+                            <li>Informes exportables para presentaciones</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                    
                     <MlModelInfo industry={industry || "retail"} />
+                    
                     <div className="bg-blue-50 p-6 border border-blue-200 rounded-lg">
                       <h3 className="text-lg font-medium text-blue-800 mb-4">Plantillas de Excel para análisis avanzado</h3>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -410,6 +510,15 @@ const Dashboard = () => {
                               <p className="text-sm text-muted-foreground">
                                 Series temporales estacionales con componentes autorregresivos.
                               </p>
+                              <div className="bg-slate-50 p-2 rounded-md mb-2">
+                                <p className="text-xs font-medium">Campos requeridos:</p>
+                                <ul className="text-xs list-disc pl-4">
+                                  <li>Fecha (YYYY-MM-DD)</li>
+                                  <li>Valor (numérico)</li>
+                                  <li>Estacionalidad (periodo)</li>
+                                  <li>Variables externas (opcional)</li>
+                                </ul>
+                              </div>
                               <Button 
                                 variant="outline" 
                                 size="sm" 
@@ -420,11 +529,21 @@ const Dashboard = () => {
                                 Descargar SARIMA
                               </Button>
                             </div>
+                            
                             <div className="space-y-2">
                               <h4 className="font-medium">ARIMA</h4>
                               <p className="text-sm text-muted-foreground">
                                 Series temporales no estacionales para predicciones a corto plazo.
                               </p>
+                              <div className="bg-slate-50 p-2 rounded-md mb-2">
+                                <p className="text-xs font-medium">Campos requeridos:</p>
+                                <ul className="text-xs list-disc pl-4">
+                                  <li>Fecha (YYYY-MM-DD)</li>
+                                  <li>Valor (numérico)</li>
+                                  <li>Diferenciación (orden)</li>
+                                  <li>Autocorrelación (opcional)</li>
+                                </ul>
+                              </div>
                               <Button 
                                 variant="outline" 
                                 size="sm" 
@@ -435,11 +554,21 @@ const Dashboard = () => {
                                 Descargar ARIMA
                               </Button>
                             </div>
+                            
                             <div className="space-y-2">
                               <h4 className="font-medium">Prophet</h4>
                               <p className="text-sm text-muted-foreground">
                                 Pronósticos robustos con múltiples patrones estacionales.
                               </p>
+                              <div className="bg-slate-50 p-2 rounded-md mb-2">
+                                <p className="text-xs font-medium">Campos requeridos:</p>
+                                <ul className="text-xs list-disc pl-4">
+                                  <li>ds (fecha en YYYY-MM-DD)</li>
+                                  <li>y (valor a predecir)</li>
+                                  <li>eventos_especiales (opcional)</li>
+                                  <li>variables_adicionales (opcional)</li>
+                                </ul>
+                              </div>
                               <Button 
                                 variant="outline" 
                                 size="sm" 
@@ -463,6 +592,15 @@ const Dashboard = () => {
                               <p className="text-sm text-muted-foreground">
                                 Segmentación de datos en grupos con características similares.
                               </p>
+                              <div className="bg-slate-50 p-2 rounded-md mb-2">
+                                <p className="text-xs font-medium">Campos requeridos:</p>
+                                <ul className="text-xs list-disc pl-4">
+                                  <li>ID (identificador)</li>
+                                  <li>Variable_1, Variable_2, etc. (numéricas)</li>
+                                  <li>Num_Clusters (sugerencia)</li>
+                                  <li>Normalizar (Sí/No)</li>
+                                </ul>
+                              </div>
                               <Button 
                                 variant="outline" 
                                 size="sm" 
@@ -473,11 +611,21 @@ const Dashboard = () => {
                                 Descargar K-means
                               </Button>
                             </div>
+                            
                             <div className="space-y-2">
                               <h4 className="font-medium">Random Forest</h4>
                               <p className="text-sm text-muted-foreground">
                                 Árboles de decisión para clasificación y regresión.
                               </p>
+                              <div className="bg-slate-50 p-2 rounded-md mb-2">
+                                <p className="text-xs font-medium">Campos requeridos:</p>
+                                <ul className="text-xs list-disc pl-4">
+                                  <li>ID (identificador)</li>
+                                  <li>Variables predictoras (múltiples)</li>
+                                  <li>Variable objetivo (target)</li>
+                                  <li>Tipo_Análisis (clasificación/regresión)</li>
+                                </ul>
+                              </div>
                               <Button 
                                 variant="outline" 
                                 size="sm" 
@@ -488,11 +636,21 @@ const Dashboard = () => {
                                 Descargar Random Forest
                               </Button>
                             </div>
+                            
                             <div className="space-y-2">
                               <h4 className="font-medium">SVM</h4>
                               <p className="text-sm text-muted-foreground">
                                 Clasificación con márgenes máximos para datos complejos.
                               </p>
+                              <div className="bg-slate-50 p-2 rounded-md mb-2">
+                                <p className="text-xs font-medium">Campos requeridos:</p>
+                                <ul className="text-xs list-disc pl-4">
+                                  <li>ID (identificador)</li>
+                                  <li>Variables de entrada (numéricas)</li>
+                                  <li>Clase (target categórico)</li>
+                                  <li>Kernel (rbf, linear, poly)</li>
+                                </ul>
+                              </div>
                               <Button 
                                 variant="outline" 
                                 size="sm" 
@@ -516,6 +674,15 @@ const Dashboard = () => {
                               <p className="text-sm text-muted-foreground">
                                 Gradient boosting de alto rendimiento para problemas complejos.
                               </p>
+                              <div className="bg-slate-50 p-2 rounded-md mb-2">
+                                <p className="text-xs font-medium">Campos requeridos:</p>
+                                <ul className="text-xs list-disc pl-4">
+                                  <li>ID (identificador)</li>
+                                  <li>Variables predictoras (múltiples)</li>
+                                  <li>Variable objetivo</li>
+                                  <li>Tipo_Objetivo (binario, multiclase, ranking)</li>
+                                </ul>
+                              </div>
                               <Button 
                                 variant="outline" 
                                 size="sm" 
@@ -526,11 +693,21 @@ const Dashboard = () => {
                                 Descargar XGBoost
                               </Button>
                             </div>
+                            
                             <div className="space-y-2">
                               <h4 className="font-medium">Redes LSTM</h4>
                               <p className="text-sm text-muted-foreground">
                                 Redes neuronales para secuencias y patrones complejos.
                               </p>
+                              <div className="bg-slate-50 p-2 rounded-md mb-2">
+                                <p className="text-xs font-medium">Campos requeridos:</p>
+                                <ul className="text-xs list-disc pl-4">
+                                  <li>Fecha (secuencial)</li>
+                                  <li>Variables secuenciales (numéricas)</li>
+                                  <li>Tamaño_Ventana (lookback)</li>
+                                  <li>Horizonte_Predicción (pasos)</li>
+                                </ul>
+                              </div>
                               <Button 
                                 variant="outline" 
                                 size="sm" 
@@ -541,11 +718,21 @@ const Dashboard = () => {
                                 Descargar LSTM
                               </Button>
                             </div>
+                            
                             <div className="space-y-2">
                               <h4 className="font-medium">Análisis Estadísticos</h4>
                               <p className="text-sm text-muted-foreground">
                                 ANOVA, PCA y otras técnicas estadísticas avanzadas.
                               </p>
+                              <div className="bg-slate-50 p-2 rounded-md mb-2">
+                                <p className="text-xs font-medium">Campos requeridos:</p>
+                                <ul className="text-xs list-disc pl-4">
+                                  <li>ID (observación)</li>
+                                  <li>Variables de interés (numéricas)</li>
+                                  <li>Grupos/Factores (categóricos)</li>
+                                  <li>Tipo_Análisis (anova, pca, etc.)</li>
+                                </ul>
+                              </div>
                               <Button 
                                 variant="outline" 
                                 size="sm" 
@@ -562,6 +749,103 @@ const Dashboard = () => {
                     </div>
                   </>
                 )}
+              </div>
+            </TabsContent>
+            
+            {/* Nueva pestaña de Resultados ML */}
+            <TabsContent value="ml_results" className="space-y-6">
+              <div className="grid grid-cols-1 gap-6">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <CardTitle className="text-lg">Resultados de Análisis Machine Learning</CardTitle>
+                    <FileText className="h-5 w-5 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    {loading ? (
+                      <div className="space-y-3">
+                        <Skeleton className="h-8 w-[250px]" />
+                        <Skeleton className="h-[300px] w-full" />
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        <div className="rounded-lg border bg-slate-50 p-4">
+                          <h3 className="text-md font-medium mb-2">
+                            Este panel muestra resultados de modelos de machine learning
+                          </h3>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Suba sus datos en la pestaña "Modelos ML" para ver aquí los resultados del análisis. 
+                            Los resultados variarán según el tipo de modelo seleccionado.
+                          </p>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <Card>
+                              <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-medium">
+                                  Rendimiento predictivo por modelo
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent className="h-[200px] flex items-center justify-center">
+                                <p className="text-sm text-muted-foreground text-center">
+                                  Suba un archivo para ver métricas de rendimiento
+                                </p>
+                              </CardContent>
+                            </Card>
+                            <Card>
+                              <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-medium">
+                                  Visualización de resultados
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent className="h-[200px] flex items-center justify-center">
+                                <p className="text-sm text-muted-foreground text-center">
+                                  Suba un archivo para ver visualizaciones de resultados
+                                </p>
+                              </CardContent>
+                            </Card>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <Card>
+                            <CardHeader className="pb-2">
+                              <CardTitle className="text-sm font-medium">
+                                Métricas de evaluación
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <p className="text-sm text-muted-foreground text-center">
+                                Sin datos disponibles
+                              </p>
+                            </CardContent>
+                          </Card>
+                          <Card>
+                            <CardHeader className="pb-2">
+                              <CardTitle className="text-sm font-medium">
+                                Variables importantes
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <p className="text-sm text-muted-foreground text-center">
+                                Sin datos disponibles
+                              </p>
+                            </CardContent>
+                          </Card>
+                          <Card>
+                            <CardHeader className="pb-2">
+                              <CardTitle className="text-sm font-medium">
+                                Predicciones futuras
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <p className="text-sm text-muted-foreground text-center">
+                                Sin datos disponibles
+                              </p>
+                            </CardContent>
+                          </Card>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
           </Tabs>

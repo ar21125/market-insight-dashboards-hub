@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { ArrowDownIcon, ArrowUpIcon, HelpCircleIcon, Download, FileChartLine } from "lucide-react";
+import { ArrowDownIcon, ArrowUpIcon, HelpCircleIcon, Download, FileChartLine, FileText } from "lucide-react";
 import { formatNumber, getExcelTemplate } from "@/lib/api";
 import { 
   Tooltip, 
@@ -127,7 +127,13 @@ export const MlModelInfo: React.FC<MlModelInfoProps> = ({ industry }) => {
         educacion: "Predice patrones de matriculación y abandono, mejorando la planificación de recursos educativos y programas de retención."
       },
       implementation: "Integre este análisis en sus sistemas de planificación para anticipar tendencias estacionales. Los datos procesados pueden visualizarse en sus dashboards existentes mediante APIs REST.",
-      inputFields: "Serie temporal (al menos 2-3 temporadas completas), factores estacionales, variables externas que afecten la demanda.",
+      inputFields: [
+        { name: "Fecha", description: "Serie temporal ordenada cronológicamente" },
+        { name: "Valor", description: "Variable a predecir (ventas, demanda, etc.)" },
+        { name: "Periodo_Estacional", description: "Duración del ciclo estacional (7=semanal, 12=mensual)" },
+        { name: "Variables_Externas", description: "Factores adicionales que afectan la serie (opcional)" }
+      ],
+      outputs: "Predicciones a corto y medio plazo, identificación de patrones estacionales, intervalos de confianza para previsiones, descomposición en componentes de tendencia/estacionalidad.",
       applications: {
         retail: "Predicción de ventas estacionales y demanda de productos.",
         finanzas: "Análisis de tendencias en mercados financieros y previsión de resultados.",
@@ -149,7 +155,13 @@ export const MlModelInfo: React.FC<MlModelInfoProps> = ({ industry }) => {
         educacion: "Mejora la planificación académica incorporando múltiples factores estacionales y eventos que impactan en la demanda educativa."
       },
       implementation: "Prophet puede integrarse como microservicio independiente o mediante API conectada a sus fuentes de datos. Los resultados son compatibles con herramientas de visualización como Power BI o Tableau.",
-      inputFields: "Serie temporal histórica, calendario de eventos especiales (feriados, promociones), datos de tendencias a largo plazo, capacidad máxima (opcional).",
+      inputFields: [
+        { name: "ds", description: "Fecha en formato específico YYYY-MM-DD" },
+        { name: "y", description: "Variable a predecir (ventas, usuarios, etc.)" },
+        { name: "eventos", description: "Eventos especiales que afectan la serie (opcional)" },
+        { name: "regresores", description: "Variables adicionales que influyen en las predicciones" }
+      ],
+      outputs: "Predicciones detalladas con intervalos de confianza, descomposición en componentes (tendencia, estacionalidad), identificación del impacto de eventos especiales, visualizaciones automáticas.",
       applications: {
         retail: "Gestión avanzada de inventarios y personal basado en tendencias.",
         finanzas: "Predicción de rendimientos y volatilidad de mercados.",
@@ -171,7 +183,13 @@ export const MlModelInfo: React.FC<MlModelInfoProps> = ({ industry }) => {
         educacion: "Agrupa estudiantes según necesidades y rendimiento, permitiendo intervenciones educativas personalizadas."
       },
       implementation: "Los resultados de K-means pueden integrarse en sus CRM, sistemas de marketing o plataformas de análisis para acciones automatizadas basadas en segmentos.",
-      inputFields: "Datos multidimensionales normalizados, número aproximado de clusters esperados, limitaciones de distancia (opcional).",
+      inputFields: [
+        { name: "Variables_Numéricas", description: "Atributos numéricos para la agrupación" },
+        { name: "ID", description: "Identificador único para cada registro" },
+        { name: "Num_Clusters", description: "Sugerencia de número de grupos a formar" },
+        { name: "Escala", description: "Indicación si se requiere normalización de variables" }
+      ],
+      outputs: "Identificación de grupos homogéneos, centros de clusters, asignación de segmento a cada registro, visualizaciones de la distribución de segmentos, métricas de calidad de agrupación.",
       applications: {
         retail: "Segmentación de clientes por patrones de compra y valor.",
         finanzas: "Agrupación de clientes por perfil de riesgo y comportamiento.",
@@ -193,7 +211,14 @@ export const MlModelInfo: React.FC<MlModelInfoProps> = ({ industry }) => {
         educacion: "Anticipa cambios en indicadores educativos para intervenciones oportunas."
       },
       implementation: "ARIMA puede implementarse como componente de sistemas ERP o BI existentes, proporcionando pronósticos automatizados para decisiones operativas.",
-      inputFields: "Serie temporal estacionaria o diferenciada, parámetros p, d, q sugeridos, pruebas de estacionariedad.",
+      inputFields: [
+        { name: "Fecha", description: "Serie temporal ordenada cronológicamente" },
+        { name: "Valor", description: "Variable a predecir (ventas, usuarios, etc.)" },
+        { name: "Orden_AR", description: "Sugerencia de componente autorregresivo (p)" },
+        { name: "Orden_I", description: "Sugerencia de diferenciación (d)" },
+        { name: "Orden_MA", description: "Sugerencia de media móvil (q)" }
+      ],
+      outputs: "Predicciones a corto plazo, identificación de parámetros óptimos del modelo, diagnósticos de residuos, intervalos de confianza para previsiones.",
       applications: {
         retail: "Pronóstico de tendencias de ventas a corto plazo.",
         finanzas: "Modelado de rendimientos financieros y precios de activos.",
@@ -215,7 +240,14 @@ export const MlModelInfo: React.FC<MlModelInfoProps> = ({ industry }) => {
         educacion: "Predice éxito académico y riesgo de abandono con múltiples variables, mejorando intervenciones."
       },
       implementation: "Random Forest puede integrarse como API o modelo local en sus aplicaciones de negocio, proporcionando predicciones en tiempo real o por lotes.",
-      inputFields: "Datos de entrenamiento con múltiples variables predictoras, variable objetivo, parámetros de optimización del modelo.",
+      inputFields: [
+        { name: "Variables_Predictoras", description: "Atributos que influyen en la predicción" },
+        { name: "Variable_Objetivo", description: "Variable a predecir (categórica o numérica)" },
+        { name: "ID", description: "Identificador único para cada registro" },
+        { name: "Tipo", description: "Clasificación o regresión" },
+        { name: "Num_Arboles", description: "Sugerencia de número de árboles a crear" }
+      ],
+      outputs: "Predicciones con alta precisión, importancia de variables, análisis de error, reglas de decisión interpretables, matriz de confusión (para clasificación).",
       applications: {
         retail: "Predicción de propensión de compra y análisis de abandono.",
         finanzas: "Detección de fraude y evaluación de riesgo crediticio.",
@@ -237,7 +269,14 @@ export const MlModelInfo: React.FC<MlModelInfoProps> = ({ industry }) => {
         educacion: "Personaliza recomendaciones educativas basadas en múltiples factores de aprendizaje."
       },
       implementation: "XGBoost puede desplegarse como servicio escalable en la nube o integrarse en sus aplicaciones existentes a través de APIs de predicción.",
-      inputFields: "Conjuntos de datos con múltiples variables, datos de entrenamiento y validación, especificación de hiperparámetros.",
+      inputFields: [
+        { name: "Variables_Predictoras", description: "Atributos que influyen en la predicción" },
+        { name: "Variable_Objetivo", description: "Variable a predecir (categórica o numérica)" },
+        { name: "ID", description: "Identificador único para cada registro" },
+        { name: "Tipo_Objetivo", description: "Binary, multi:softmax, reg:squarederror, etc." },
+        { name: "Parámetros", description: "Sugerencias de hiperparámetros (opcional)" }
+      ],
+      outputs: "Predicciones de alta precisión, importancia de variables, ganancia en cada iteración, visualizaciones de árboles, escenarios de optimización.",
       applications: {
         retail: "Optimización de precios y recomendaciones personalizadas.",
         finanzas: "Trading algorítmico y predicción avanzada de mercados.",
@@ -259,7 +298,14 @@ export const MlModelInfo: React.FC<MlModelInfoProps> = ({ industry }) => {
         educacion: "Identifica patrones complejos en trayectorias de aprendizaje para intervenciones educativas personalizadas."
       },
       implementation: "Las LSTM requieren infraestructura de ML robusta, pero pueden implementarse como servicios escalables en la nube consumibles a través de API REST.",
-      inputFields: "Secuencias temporales preprocesadas, definición de estructura de la red, hiperparámetros de entrenamiento, datos de validación.",
+      inputFields: [
+        { name: "Secuencia_Temporal", description: "Serie de datos ordenada cronológicamente" },
+        { name: "Variables", description: "Métricas a analizar (pueden ser múltiples)" },
+        { name: "Ventana", description: "Tamaño de ventana temporal para análisis" },
+        { name: "Horizonte", description: "Horizonte de predicción deseado" },
+        { name: "Capas", description: "Sugerencia de arquitectura de la red (opcional)" }
+      ],
+      outputs: "Predicciones avanzadas para patrones complejos, detección de anomalías en secuencias, generación de contenido similar, análisis de dependencias a largo plazo.",
       applications: {
         retail: "Predicción de demanda con múltiples variables y patrones complejos.",
         finanzas: "Predicción de series temporales financieras y análisis de sentimiento.",
@@ -267,28 +313,6 @@ export const MlModelInfo: React.FC<MlModelInfoProps> = ({ industry }) => {
         manufactura: "Predictivo avanzado de mantenimiento y control de calidad.",
         tecnologia: "Análisis de secuencias de comportamiento y patrones complejos.",
         educacion: "Análisis de trayectorias de aprendizaje y patrones de progreso."
-      }
-    },
-    pca: {
-      title: "Análisis PCA",
-      description: "Reducción dimensional para visualización y preparación de datos multivariables.",
-      benefits: {
-        retail: "Identifica patrones ocultos en datos de ventas y clientes, reduciendo dimensiones de datos y facilitando visualizaciones efectivas.",
-        finanzas: "Simplifica modelos financieros complejos manteniendo la información esencial, mejorando interpretabilidad y rendimiento.",
-        salud: "Revela factores principales en grandes conjuntos de datos médicos, identificando variables determinantes en resultados clínicos.",
-        manufactura: "Identifica variables clave en procesos de producción complejos, simplificando control y optimización.",
-        tecnologia: "Mejora rendimiento de modelos reduciendo dimensionalidad de datos y encontrando características importantes.",
-        educacion: "Identifica factores clave en rendimiento educativo entre múltiples variables."
-      },
-      implementation: "PCA puede utilizarse como paso de preprocesamiento en pipelines de análisis de datos o visualizaciones interactivas en dashboards.",
-      inputFields: "Conjunto de datos multidimensional, número de componentes deseados, método de escalado de datos.",
-      applications: {
-        retail: "Análisis de patrones ocultos en datos de ventas y clientes.",
-        finanzas: "Reducción de dimensionalidad para modelos financieros complejos.",
-        salud: "Identificación de factores principales en datos médicos multivariables.",
-        manufactura: "Detección de variables clave en procesos de producción complejos.",
-        tecnologia: "Optimización de características en grandes conjuntos de datos.",
-        educacion: "Identificación de factores clave en rendimiento educativo."
       }
     },
     svm: {
@@ -303,7 +327,14 @@ export const MlModelInfo: React.FC<MlModelInfoProps> = ({ industry }) => {
         educacion: "Clasifica perfiles de aprendizaje para personalizar estrategias educativas."
       },
       implementation: "SVM puede implementarse como componente de clasificación en aplicaciones de negocio o como API de servicio para clasificación por lotes o en tiempo real.",
-      inputFields: "Datos de entrenamiento con etiquetas, selección de kernel, parámetros de regularización, datos normalizados.",
+      inputFields: [
+        { name: "Variables_Entrada", description: "Atributos para la clasificación" },
+        { name: "Clase", description: "Variable objetivo a clasificar" },
+        { name: "Kernel", description: "Tipo de kernel (rbf, linear, poly)" },
+        { name: "C", description: "Parámetro de regularización (opcional)" },
+        { name: "Gamma", description: "Parámetro para kernels no lineales (opcional)" }
+      ],
+      outputs: "Clasificaciones robustas, vectores de soporte identificados, márgenes de decisión, probabilidades de pertenencia a clases, evaluación de rendimiento del modelo.",
       applications: {
         retail: "Clasificación de productos y clientes.",
         finanzas: "Clasificación de transacciones y detección de anomalías.",
@@ -325,7 +356,13 @@ export const MlModelInfo: React.FC<MlModelInfoProps> = ({ industry }) => {
         educacion: "Compara efectividad entre metodologías educativas, currículos o enfoques pedagógicos."
       },
       implementation: "ANOVA puede integrarse en herramientas de análisis de negocio o implementarse como módulo estadístico en plataformas de BI existentes.",
-      inputFields: "Datos agrupados por categorías, variable dependiente medible, factores de agrupación, nivel de significancia deseado.",
+      inputFields: [
+        { name: "Grupo", description: "Factor de agrupación para comparación" },
+        { name: "Valor", description: "Variable dependiente a comparar entre grupos" },
+        { name: "Factores", description: "Factores adicionales para ANOVA multifactorial" },
+        { name: "Nivel_Significancia", description: "Nivel alpha para pruebas (ej. 0.05)" }
+      ],
+      outputs: "Tablas ANOVA completas, valores F y p, análisis post-hoc, gráficos de medias por grupo, intervalos de confianza, tamaños de efecto, potencia estadística.",
       applications: {
         retail: "Comparación de rendimiento entre tiendas o promociones.",
         finanzas: "Evaluación de estrategias de inversión y rendimientos.",
@@ -333,72 +370,6 @@ export const MlModelInfo: React.FC<MlModelInfoProps> = ({ industry }) => {
         manufactura: "Análisis comparativo de rendimiento entre líneas o plantas.",
         tecnologia: "Testing A/B y comparación de versiones de producto.",
         educacion: "Comparación de métodos educativos y resultados."
-      }
-    },
-    timeSeries: {
-      title: "Análisis de Series Temporales",
-      description: "Conjunto de técnicas estadísticas para analizar datos secuenciales en el tiempo.",
-      benefits: {
-        retail: "Identifica patrones cíclicos, tendencias y anomalías en ventas, mejorando planificación y detectando oportunidades.",
-        finanzas: "Detecta tendencias y ciclos en mercados financieros, optimizando decisiones de inversión y gestión de riesgos.",
-        salud: "Analiza tendencias en salud pública e indicadores hospitalarios, mejorando planificación sanitaria.",
-        manufactura: "Optimiza mantenimiento preventivo y planificación de producción basándose en patrones históricos.",
-        tecnologia: "Mejora monitoreo de sistemas y detección temprana de anomalías en métricas técnicas.",
-        educacion: "Analiza tendencias en rendimiento académico y participación para optimizar intervenciones."
-      },
-      implementation: "Puede implementarse mediante bibliotecas estadísticas en su plataforma de análisis o como componente en dashboards de BI.",
-      inputFields: "Serie temporal ordenada, frecuencia de muestreo, información de estacionalidad, eventos especiales o interrupciones.",
-      applications: {
-        retail: "Análisis de tendencias de ventas y patrones estacionales.",
-        finanzas: "Estudio de tendencias y ciclos en mercados financieros.",
-        salud: "Análisis de tendencias en indicadores de salud pública.",
-        manufactura: "Monitoreo de tendencias en producción y calidad.",
-        tecnologia: "Análisis de tendencias en métricas técnicas y de usuario.",
-        educacion: "Estudio de tendencias en indicadores educativos."
-      }
-    },
-    decisionTree: {
-      title: "Árboles de Decisión",
-      description: "Modelo de aprendizaje supervisado que crea un árbol de decisiones basado en reglas.",
-      benefits: {
-        retail: "Proporciona reglas claras y explicables para segmentación de clientes y predicción de comportamientos de compra.",
-        finanzas: "Crea modelos transparentes y auditables para evaluación de riesgos y decisiones crediticias.",
-        salud: "Desarrolla guías clínicas basadas en datos con decisiones fácilmente interpretables para diagnóstico.",
-        manufactura: "Identifica causas raíz de defectos mediante reglas claras y accionables.",
-        tecnologia: "Crea sistemas de recomendación explicables y transparentes para usuarios.",
-        educacion: "Diseña rutas de aprendizaje personalizadas basadas en decisiones claras según perfil del estudiante."
-      },
-      implementation: "Puede implementarse como reglas de negocio explícitas en sistemas existentes o como modelos explicables en dashboards.",
-      inputFields: "Conjunto de datos etiquetados, variables para la toma de decisiones, criterios de división y poda.",
-      applications: {
-        retail: "Segmentación de clientes y predicción de compras.",
-        finanzas: "Evaluación de riesgo crediticio y detección de fraude.",
-        salud: "Apoyo a diagnóstico y protocolos de tratamiento.",
-        manufactura: "Análisis causa-raíz de defectos y control de calidad.",
-        tecnologia: "Sistemas de recomendación y clasificación de usuarios.",
-        educacion: "Personalización de rutas educativas."
-      }
-    },
-    naiveBayes: {
-      title: "Naive Bayes",
-      description: "Clasificador probabilístico basado en el teorema de Bayes con independencia entre variables.",
-      benefits: {
-        retail: "Clasifica rápidamente productos y clientes con modelos simples que funcionan bien incluso con datos limitados.",
-        finanzas: "Proporciona clasificación probabilística de riesgos y transacciones con alta eficiencia computacional.",
-        salud: "Clasifica condiciones médicas basándose en síntomas con modelos sencillos y eficaces.",
-        manufactura: "Identifica defectos de productos rápidamente con requisitos computacionales mínimos.",
-        tecnologia: "Filtra contenido no deseado (spam, comentarios) con alta eficiencia y mínimo entrenamiento.",
-        educacion: "Clasifica contenidos educativos y perfil de estudiantes con modelos simples y rápidos."
-      },
-      implementation: "Ideal como componente ligero en aplicaciones móviles o sistemas embebidos con recursos limitados.",
-      inputFields: "Datos categóricos o discretos, etiquetas de clase, datos de entrenamiento con características independientes.",
-      applications: {
-        retail: "Clasificación rápida de clientes y productos.",
-        finanzas: "Detección básica de fraude y clasificación de riesgos.",
-        salud: "Diagnóstico preliminar basado en síntomas.",
-        manufactura: "Clasificación rápida de control de calidad.",
-        tecnologia: "Filtrado de spam y categorización básica de contenido.",
-        educacion: "Clasificación de contenidos y perfiles educativos."
       }
     }
   };
@@ -435,12 +406,12 @@ export const MlModelInfo: React.FC<MlModelInfoProps> = ({ industry }) => {
     <div className="space-y-8">
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Modelos de Machine Learning para {industry}</CardTitle>
+          <CardTitle className="text-lg">Modelos de Machine Learning para {industryNames[industry] || industry}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground mb-6">
             Seleccione el modelo adecuado según sus necesidades de análisis. Cada modelo está optimizado para resolver 
-            diferentes problemas de negocio específicos para el sector de {industry}.
+            diferentes problemas de negocio específicos para el sector de {industryNames[industry] || industry}.
           </p>
           
           <Accordion type="single" collapsible className="w-full">
@@ -457,7 +428,7 @@ export const MlModelInfo: React.FC<MlModelInfoProps> = ({ industry }) => {
                     <div>
                       <p className="text-muted-foreground mb-2">{model.description}</p>
                       <div className="bg-blue-50 p-3 rounded-md mb-4">
-                        <h4 className="font-medium text-blue-800 mb-1">Aplicación en {industry}</h4>
+                        <h4 className="font-medium text-blue-800 mb-1">Aplicación en {industryNames[industry] || industry}</h4>
                         <p className="text-blue-700 text-sm">{model.applications[industry as keyof typeof model.applications]}</p>
                       </div>
                     </div>
@@ -468,13 +439,24 @@ export const MlModelInfo: React.FC<MlModelInfoProps> = ({ industry }) => {
                     </div>
                     
                     <div>
-                      <h4 className="font-medium mb-2">Implementación</h4>
-                      <p className="text-sm text-muted-foreground">{model.implementation}</p>
+                      <h4 className="font-medium mb-2">Campos requeridos</h4>
+                      <div className="bg-slate-50 p-3 rounded-md">
+                        <ul className="list-disc pl-5 space-y-1 text-sm">
+                          {model.inputFields.map((field, index) => (
+                            <li key={index}><span className="font-medium">{field.name}</span>: {field.description}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-medium mb-2">Resultados que obtendrá</h4>
+                      <p className="text-sm text-muted-foreground">{model.outputs}</p>
                     </div>
                     
                     <div>
-                      <h4 className="font-medium mb-2">Datos necesarios</h4>
-                      <p className="text-sm text-muted-foreground">{model.inputFields}</p>
+                      <h4 className="font-medium mb-2">Implementación</h4>
+                      <p className="text-sm text-muted-foreground">{model.implementation}</p>
                     </div>
                     
                     <div className="pt-2">
@@ -506,7 +488,10 @@ export const MlModelInfo: React.FC<MlModelInfoProps> = ({ industry }) => {
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div className="bg-white p-4 rounded-md border border-slate-200">
-              <h4 className="font-medium mb-2">Conexión con servicios existentes</h4>
+              <h4 className="font-medium mb-2 flex items-center">
+                <FileText className="h-4 w-4 mr-2 text-primary" />
+                Conexión con servicios existentes
+              </h4>
               <ul className="list-disc pl-5 space-y-1 text-sm">
                 <li>Integración con bases de datos SQL/NoSQL</li>
                 <li>Conexión con sistemas ERP/CRM</li>
@@ -515,7 +500,10 @@ export const MlModelInfo: React.FC<MlModelInfoProps> = ({ industry }) => {
               </ul>
             </div>
             <div className="bg-white p-4 rounded-md border border-slate-200">
-              <h4 className="font-medium mb-2">Servicios ML compatibles</h4>
+              <h4 className="font-medium mb-2 flex items-center">
+                <FileText className="h-4 w-4 mr-2 text-primary" />
+                Servicios ML compatibles
+              </h4>
               <ul className="list-disc pl-5 space-y-1 text-sm">
                 <li>Amazon SageMaker</li>
                 <li>Google AI Platform</li>
@@ -529,4 +517,14 @@ export const MlModelInfo: React.FC<MlModelInfoProps> = ({ industry }) => {
       </div>
     </div>
   );
+};
+
+// Añadir aquí nombres de industrias en español para referencias globales
+const industryNames: Record<string, string> = {
+  retail: "Retail",
+  finanzas: "Servicios Financieros",
+  salud: "Salud",
+  manufactura: "Manufactura",
+  tecnologia: "Tecnología",
+  educacion: "Educación"
 };
