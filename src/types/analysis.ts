@@ -44,4 +44,25 @@ export interface AnalysisFlow {
   recommendedTools: string[];
   recommendedFor?: RecommendedFor[];
   steps: AnalysisStep[];
+  technicalImplementation?: TechnicalImplementation;
+}
+
+export interface TechnicalImplementation {
+  approach: string;
+  technologies: string[];
+  openSourceAlternatives?: OpenSourceAlternative[];
+  implementationSteps: ImplementationStep[];
+  challenges?: string[];
+}
+
+export interface OpenSourceAlternative {
+  name: string;
+  description: string;
+  url?: string;
+}
+
+export interface ImplementationStep {
+  name: string;
+  description: string;
+  resources?: string[];
 }
