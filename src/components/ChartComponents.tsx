@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   BarChart as BarChartComponent,
@@ -28,6 +27,7 @@ import {
 interface ChartProps {
   data: any[];
   height?: number;
+  id?: string;
 }
 
 // Colores consistentes para todas las gráficas
@@ -37,9 +37,9 @@ const COLORS = [
   '#f59e0b', '#d97706', '#b45309', '#92400e', '#fbbf24', '#fcd34d'
 ];
 
-export const SimpleBarChart = ({ data, height = 300 }: ChartProps) => {
+export const SimpleBarChart = ({ data, height = 300, id }: ChartProps) => {
   return (
-    <ResponsiveContainer width="100%" height={height}>
+    <ResponsiveContainer width="100%" height={height} id={id}>
       <BarChartComponent
         data={data}
         margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
@@ -55,9 +55,9 @@ export const SimpleBarChart = ({ data, height = 300 }: ChartProps) => {
   );
 };
 
-export const GroupedBarChart = ({ data, height = 300 }: ChartProps) => {
+export const GroupedBarChart = ({ data, height = 300, id }: ChartProps) => {
   return (
-    <ResponsiveContainer width="100%" height={height}>
+    <ResponsiveContainer width="100%" height={height} id={id}>
       <BarChartComponent
         data={data}
         margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
@@ -74,9 +74,9 @@ export const GroupedBarChart = ({ data, height = 300 }: ChartProps) => {
   );
 };
 
-export const SimpleLineChart = ({ data, height = 300 }: ChartProps) => {
+export const SimpleLineChart = ({ data, height = 300, id }: ChartProps) => {
   return (
-    <ResponsiveContainer width="100%" height={height}>
+    <ResponsiveContainer width="100%" height={height} id={id}>
       <LineChart
         data={data}
         margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
@@ -92,9 +92,9 @@ export const SimpleLineChart = ({ data, height = 300 }: ChartProps) => {
   );
 };
 
-export const MultiLineChart = ({ data, height = 300 }: ChartProps) => {
+export const MultiLineChart = ({ data, height = 300, id }: ChartProps) => {
   return (
-    <ResponsiveContainer width="100%" height={height}>
+    <ResponsiveContainer width="100%" height={height} id={id}>
       <LineChart
         data={data}
         margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
@@ -112,9 +112,9 @@ export const MultiLineChart = ({ data, height = 300 }: ChartProps) => {
   );
 };
 
-export const SimplePieChart = ({ data, height = 300 }: ChartProps) => {
+export const SimplePieChart = ({ data, height = 300, id }: ChartProps) => {
   return (
-    <ResponsiveContainer width="100%" height={height}>
+    <ResponsiveContainer width="100%" height={height} id={id}>
       <PieChart>
         <Pie
           data={data}
@@ -137,9 +137,9 @@ export const SimplePieChart = ({ data, height = 300 }: ChartProps) => {
   );
 };
 
-export const SimpleAreaChart = ({ data, height = 300 }: ChartProps) => {
+export const SimpleAreaChart = ({ data, height = 300, id }: ChartProps) => {
   return (
-    <ResponsiveContainer width="100%" height={height}>
+    <ResponsiveContainer width="100%" height={height} id={id}>
       <AreaChart
         data={data}
         margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
@@ -155,9 +155,9 @@ export const SimpleAreaChart = ({ data, height = 300 }: ChartProps) => {
   );
 };
 
-export const SimpleScatterChart = ({ data, height = 300 }: ChartProps) => {
+export const SimpleScatterChart = ({ data, height = 300, id }: ChartProps) => {
   return (
-    <ResponsiveContainer width="100%" height={height}>
+    <ResponsiveContainer width="100%" height={height} id={id}>
       <ScatterChart
         margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
       >
@@ -172,9 +172,9 @@ export const SimpleScatterChart = ({ data, height = 300 }: ChartProps) => {
   );
 };
 
-export const SimpleRadarChart = ({ data, height = 300 }: ChartProps) => {
+export const SimpleRadarChart = ({ data, height = 300, id }: ChartProps) => {
   return (
-    <ResponsiveContainer width="100%" height={height}>
+    <ResponsiveContainer width="100%" height={height} id={id}>
       <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
         <PolarGrid />
         <PolarAngleAxis dataKey="name" />
@@ -186,9 +186,9 @@ export const SimpleRadarChart = ({ data, height = 300 }: ChartProps) => {
   );
 };
 
-export const MultiRadarChart = ({ data, height = 300 }: ChartProps) => {
+export const MultiRadarChart = ({ data, height = 300, id }: ChartProps) => {
   return (
-    <ResponsiveContainer width="100%" height={height}>
+    <ResponsiveContainer width="100%" height={height} id={id}>
       <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
         <PolarGrid />
         <PolarAngleAxis dataKey="name" />
@@ -202,11 +202,11 @@ export const MultiRadarChart = ({ data, height = 300 }: ChartProps) => {
   );
 };
 
-export const BoxPlot = ({ data, height = 300 }: ChartProps) => {
+export const BoxPlot = ({ data, height = 300, id }: ChartProps) => {
   // This is a simple representation of a boxplot using bars
   // For a real boxplot, you might need a more specialized library
   return (
-    <ResponsiveContainer width="100%" height={height}>
+    <ResponsiveContainer width="100%" height={height} id={id}>
       <BarChartComponent
         layout="vertical"
         data={data}
@@ -227,11 +227,11 @@ export const BoxPlot = ({ data, height = 300 }: ChartProps) => {
   );
 };
 
-export const HeatMap = ({ data, height = 300 }: ChartProps) => {
+export const HeatMap = ({ data, height = 300, id }: ChartProps) => {
   // This is a simplified heatmap representation
   // For more complex heatmaps, use a specialized visualization library
   return (
-    <div style={{ width: '100%', height: height, position: 'relative', overflow: 'auto' }}>
+    <div style={{ width: '100%', height: height, position: 'relative', overflow: 'auto' }} id={id}>
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${data[0]?.values?.length || 1}, 1fr)` }}>
         {data.map((row, rowIndex) => (
           <React.Fragment key={`row-${rowIndex}`}>

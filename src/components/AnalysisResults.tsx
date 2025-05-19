@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   BarChart, LineChart, PieChart, AreaChart, Radar,
   Download, FileText, Image, FileBarChart2, FileImage, FilePieChart,
-  AlertCircle, Lightbulb, HelpCircle
+  AlertCircle, Lightbulb, HelpCircle, Info
 } from "lucide-react";
 import {
   SimpleBarChart,
@@ -20,6 +20,7 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { toast } from "sonner";
 import { MCPRecommendations } from './MCPRecommendations';
+import { methodologyService, VisualizationType, MethodologyFlow } from '@/services/methodologyService';
 
 type Visualization = {
   type: string;
@@ -51,6 +52,14 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState('visualizations');
   const [exportLoading, setExportLoading] = useState(false);
+  const [methodologyTab, setMethodologyTab] = useState<string>("descriptive_analytics");
+  
+  // Get recommended methodology flows
+  const compatibleFlows = modelType ? methodologyService.getCompatibleMethodologyFlows(modelType) : [];
+  
+  // Get recommended visualizations based on model type and metrics
+  const recommendedVisualizations = modelType ? 
+    methodologyService.getRecommendedVisualizations(modelType, resultMetrics) : [];
   
   // Function to download the chart as an image
   const downloadChartAsImage = async (chartId: string, filename: string) => {
@@ -310,7 +319,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({
       </div>
       
       <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-3 mb-4">
+        <TabsList className="grid grid-cols-4 mb-4">
           <TabsTrigger value="visualizations" className="flex items-center gap-1">
             <Image className="h-4 w-4" />
             Visualizaciones
@@ -322,6 +331,10 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({
           <TabsTrigger value="recommendations" className="flex items-center gap-1">
             <Lightbulb className="h-4 w-4" />
             Recomendaciones
+          </TabsTrigger>
+          <TabsTrigger value="methodology" className="flex items-center gap-1">
+            <Info className="h-4 w-4" />
+            Metodología
           </TabsTrigger>
         </TabsList>
         
@@ -526,7 +539,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({
                             {Object.entries(resultMetrics.cluster_sizes).map(([cluster, count]) => (
                               <div key={cluster} className="flex justify-between">
                                 <span className="text-sm">Cluster {cluster}:</span>
-                                <span className="font-medium">{count} elementos</span>
+                                <span className="font-medium">{String(count)} elementos</span>
                               </div>
                             ))}
                           </div>
@@ -559,6 +572,251 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({
             metrics={resultMetrics}
             result={result}
           />
+        </TabsContent>
+        
+        <TabsContent value="methodology">
+          {compatibleFlows.length > 0 ? (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Metodologías de análisis recomendadas</CardTitle>
+                  <CardDescription>
+                    Flujos metodológicos que se complementan para maximizar el valor de sus datos
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Tabs 
+                    value={methodologyTab} 
+                    onValueChange={setMethodologyTab}
+                    className="w-full"
+                  >
+                    <TabsList className="mb-4 w-full flex flex-wrap h-auto">
+                      {compatibleFlows.map((flow: MethodologyFlow) => (
+                        <TabsTrigger 
+                          key={flow.id}
+                          value={flow.id} 
+                          className="flex-1 h-auto py-2 whitespace-normal"
+                        >
+                          {flow.name}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                    
+                    {compatibleFlows.map((flow: MethodologyFlow) => (
+                      <TabsContent key={flow.id} value={flow.id} className="space-y-4">
+                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                          <h3 className="font-medium text-lg">{flow.name}</h3>
+                          <p className="text-blue-700 mt-1">{flow.description}</p>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                          <Card>
+                            <CardHeader className="py-3 px-4">
+                              <CardTitle className="text-base">Datos de entrada requeridos</CardTitle>
+                            </CardHeader>
+                            <CardContent className="py-2 px-4">
+                              <ul className="list-disc list-inside space-y-1">
+                                {flow.requiredInputs.map((input, idx) => (
+                                  <li key={idx} className="text-sm">{input}</li>
+                                ))}
+                              </ul>
+                            </CardContent>
+                          </Card>
+                          
+                          <Card>
+                            <CardHeader className="py-3 px-4">
+                              <CardTitle className="text-base">Resultados esperados</CardTitle>
+                            </CardHeader>
+                            <CardContent className="py-2 px-4">
+                              <ul className="list-disc list-inside space-y-1">
+                                {flow.outputs.map((output, idx) => (
+                                  <li key={idx} className="text-sm">{output}</li>
+                                ))}
+                              </ul>
+                            </CardContent>
+                          </Card>
+                          
+                          <Card>
+                            <CardHeader className="py-3 px-4">
+                              <CardTitle className="text-base">Visualizaciones recomendadas</CardTitle>
+                            </CardHeader>
+                            <CardContent className="py-2 px-4">
+                              <ul className="list-disc list-inside space-y-1">
+                                {flow.visualizations.map((viz, idx) => (
+                                  <li key={idx} className="text-sm">{viz.name}</li>
+                                ))}
+                              </ul>
+                            </CardContent>
+                          </Card>
+                        </div>
+                        
+                        <Card>
+                          <CardHeader className="py-3 px-4">
+                            <CardTitle className="text-base">Flujos complementarios</CardTitle>
+                            <CardDescription>
+                              Estos flujos aumentan el valor cuando se combinan con {flow.name}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="py-2 px-4">
+                            <div className="flex flex-wrap gap-2">
+                              {flow.complementaryFlows.map(compFlowId => {
+                                const compFlow = compatibleFlows.find(f => f.id === compFlowId);
+                                return compFlow ? (
+                                  <Button 
+                                    key={compFlowId}
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => setMethodologyTab(compFlowId)}
+                                    className="flex items-center gap-1"
+                                  >
+                                    {compFlow.name}
+                                    <ArrowUpRight className="h-3 w-3" />
+                                  </Button>
+                                ) : null;
+                              })}
+                            </div>
+                          </CardContent>
+                        </Card>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                          <div className="bg-slate-50 p-4 rounded-lg border">
+                            <h4 className="font-medium">Valor para el negocio</h4>
+                            <p className="text-sm text-slate-700 mt-1">{flow.businessValue}</p>
+                          </div>
+                          <div className="bg-slate-50 p-4 rounded-lg border">
+                            <h4 className="font-medium">Expertise requerido</h4>
+                            <p className="text-sm text-slate-700 mt-1">{flow.expertise}</p>
+                            <div className="mt-2 flex items-center gap-1">
+                              <span className="text-xs">Tiempo de implementación:</span>
+                              <span className="text-xs font-medium px-2 py-0.5 bg-blue-100 rounded-full text-blue-800">
+                                {flow.implementationTime === 'short' ? 'Corto' : 
+                                 flow.implementationTime === 'medium' ? 'Medio' : 'Largo'}
+                              </span>
+                              <span className="text-xs ml-2">ROI esperado:</span>
+                              <span className="text-xs font-medium px-2 py-0.5 bg-green-100 rounded-full text-green-800">
+                                {flow.roi === 'low' ? 'Bajo' : 
+                                 flow.roi === 'medium' ? 'Medio' : 'Alto'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </TabsContent>
+                    ))}
+                  </Tabs>
+                </CardContent>
+              </Card>
+              
+              {/* Visualization Recommendations */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Visualizaciones Recomendadas</CardTitle>
+                  <CardDescription>
+                    Tipos de visualizaciones óptimas para los datos analizados
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {recommendedVisualizations.slice(0, 6).map((viz: VisualizationType) => (
+                      <div key={viz.id} className="border rounded-lg p-4 hover:bg-slate-50 transition-colors">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-medium">{viz.name}</h4>
+                          {getChartIcon(viz.chartType)}
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-3">{viz.description}</p>
+                        <div>
+                          <h5 className="text-xs font-medium text-slate-500 mb-1">Requisitos de datos:</h5>
+                          <div className="flex flex-wrap gap-1">
+                            {viz.dataRequirements.map((req, idx) => (
+                              <span key={idx} className="text-xs bg-slate-100 px-2 py-0.5 rounded">
+                                {req}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Implementation Guide */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Guía de implementación</CardTitle>
+                  <CardDescription>
+                    Pasos recomendados para aplicar las metodologías seleccionadas
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ol className="space-y-4">
+                    <li className="flex">
+                      <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-800 font-medium mr-3">1</span>
+                      <div>
+                        <h4 className="font-medium">Preparación y validación de datos</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Limpie y prepare sus datos según los requisitos de entrada de la metodología seleccionada.
+                          Verifique la calidad de los datos y asegúrese de que sean representativos del problema.
+                        </p>
+                      </div>
+                    </li>
+                    <li className="flex">
+                      <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-800 font-medium mr-3">2</span>
+                      <div>
+                        <h4 className="font-medium">Aplicación secuencial de metodologías</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Comience con análisis descriptivo y exploratorio, luego avance hacia
+                          diagnóstico, predictivo y finalmente prescriptivo. Cada etapa aprovecha
+                          los resultados de la anterior.
+                        </p>
+                      </div>
+                    </li>
+                    <li className="flex">
+                      <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-800 font-medium mr-3">3</span>
+                      <div>
+                        <h4 className="font-medium">Validación cruzada de resultados</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Compare los resultados de diferentes metodologías para validar hallazgos
+                          y obtener una imagen más completa. Busque patrones o insights que se confirmen
+                          a través de múltiples enfoques.
+                        </p>
+                      </div>
+                    </li>
+                    <li className="flex">
+                      <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-800 font-medium mr-3">4</span>
+                      <div>
+                        <h4 className="font-medium">Implementación de recomendaciones</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Traduzca los insights analíticos en acciones concretas. Priorice basándose
+                          en impacto estimado y facilidad de implementación. Establezca métricas
+                          para medir el éxito.
+                        </p>
+                      </div>
+                    </li>
+                    <li className="flex">
+                      <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-800 font-medium mr-3">5</span>
+                      <div>
+                        <h4 className="font-medium">Monitoreo y mejora continua</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Establezca un ciclo de retroalimentación para monitorear resultados y
+                          refinar continuamente el análisis. Actualice datos y modelos periódicamente.
+                        </p>
+                      </div>
+                    </li>
+                  </ol>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="py-8 text-center">
+                <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto mb-4" />
+                <p className="font-medium">No hay metodologías disponibles</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  No se encontraron flujos metodológicos compatibles con el modelo actual
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
       

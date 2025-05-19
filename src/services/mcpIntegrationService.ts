@@ -1,7 +1,16 @@
 
 import { toast } from "sonner";
 
-// Interface for MCP tool integration
+export interface Recommendation {
+  id: string;
+  type: 'action' | 'insight' | 'tool' | 'analysis';
+  title: string;
+  description: string;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  source: string;
+  actionable: boolean;
+}
+
 export interface MCPTool {
   id: string;
   name: string;
@@ -9,465 +18,527 @@ export interface MCPTool {
   category: string;
   sourceUrl: string;
   apiEndpoint?: string;
-  requiredParams: string[];
-  supportedModelTypes: string[];
 }
 
-// Interface for recommendation types
-export interface Recommendation {
-  id: string;
-  type: 'action' | 'insight' | 'tool' | 'analysis';
-  title: string;
-  description: string;
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  modelType: string;
-  actionable: boolean;
-  source: string;
-  metadata?: Record<string, any>;
-}
-
-// Available open source MCP tools
-const mcpTools: MCPTool[] = [
-  {
-    id: 'forecasting-toolkit',
-    name: 'Forecasting Toolkit',
-    description: 'Open-source tools for advanced time series forecasting and anomaly detection',
-    category: 'time-series',
-    sourceUrl: 'https://github.com/facebook/prophet',
-    apiEndpoint: 'https://api.forecasting-toolkit.org/v1/analyze',
-    requiredParams: ['data', 'horizon', 'frequency'],
-    supportedModelTypes: ['sarima', 'arima', 'prophet', 'exponential_smoothing']
-  },
-  {
-    id: 'sklearn-toolkit',
-    name: 'Scikit-Learn Toolkit',
-    description: 'Machine learning models and tools based on scikit-learn',
-    category: 'classification',
-    sourceUrl: 'https://github.com/scikit-learn/scikit-learn',
-    apiEndpoint: 'https://api.sklearn-toolkit.org/v1/analyze',
-    requiredParams: ['data', 'target', 'features'],
-    supportedModelTypes: ['random_forest', 'xgboost', 'svm', 'logistic_regression', 'naive_bayes', 'linear_regression', 'ridge_regression']
-  },
-  {
-    id: 'clustering-toolkit',
-    name: 'Clustering Toolkit',
-    description: 'Advanced clustering algorithms and visualization tools',
-    category: 'clustering',
-    sourceUrl: 'https://github.com/scikit-learn/scikit-learn',
-    apiEndpoint: 'https://api.clustering-toolkit.org/v1/analyze',
-    requiredParams: ['data', 'n_clusters'],
-    supportedModelTypes: ['kmeans', 'hierarchical', 'dbscan']
-  },
-  {
-    id: 'stats-toolkit',
-    name: 'Statistical Analysis Toolkit',
-    description: 'Statistical analysis and hypothesis testing tools',
-    category: 'statistics',
-    sourceUrl: 'https://github.com/statsmodels/statsmodels',
-    apiEndpoint: 'https://api.stats-toolkit.org/v1/analyze',
-    requiredParams: ['data', 'test_type'],
-    supportedModelTypes: ['anova', 't_test', 'chi_square']
-  },
-  {
-    id: 'dimension-toolkit',
-    name: 'Dimensionality Reduction Toolkit',
-    description: 'Tools for dimensionality reduction and visualization',
-    category: 'dimensionality',
-    sourceUrl: 'https://github.com/scikit-learn/scikit-learn',
-    apiEndpoint: 'https://api.dimension-toolkit.org/v1/analyze',
-    requiredParams: ['data', 'n_components'],
-    supportedModelTypes: ['pca', 'tsne']
-  },
-  {
-    id: 'anomaly-detection',
-    name: 'Anomaly Detection Toolkit',
-    description: 'Tools for detecting anomalies in time series data',
-    category: 'anomaly',
-    sourceUrl: 'https://github.com/linkedin/luminol',
-    apiEndpoint: 'https://api.anomaly-toolkit.org/v1/analyze',
-    requiredParams: ['data', 'sensitivity'],
-    supportedModelTypes: ['sarima', 'arima', 'prophet', 'exponential_smoothing', 'random_forest', 'xgboost']
-  },
-  {
-    id: 'nlp-toolkit',
-    name: 'NLP Toolkit',
-    description: 'Natural language processing tools and models',
-    category: 'nlp',
-    sourceUrl: 'https://github.com/huggingface/transformers',
-    apiEndpoint: 'https://api.nlp-toolkit.org/v1/analyze',
-    requiredParams: ['text', 'task'],
-    supportedModelTypes: ['random_forest', 'xgboost', 'logistic_regression', 'naive_bayes']
-  }
-];
-
-// Predefined recommendations based on model types and results
-const predefinedRecommendations: Record<string, Recommendation[]> = {
-  'sarima': [
-    {
-      id: 'sarima-seasonal-adjustment',
-      type: 'action',
-      title: 'Ajustar componentes estacionales',
-      description: 'Considere ajustar los componentes estacionales para mejorar la precisión del modelo',
-      priority: 'medium',
-      modelType: 'sarima',
-      actionable: true,
-      source: 'forecasting-toolkit'
-    },
-    {
-      id: 'sarima-anomaly-detection',
-      type: 'analysis',
-      title: 'Detección de anomalías',
-      description: 'Ejecute un análisis de detección de anomalías para identificar valores atípicos en sus series temporales',
-      priority: 'high',
-      modelType: 'sarima',
-      actionable: true,
-      source: 'anomaly-detection'
+export const mcpIntegrationService = {
+  /**
+   * Get recommendations based on model type and metrics
+   */
+  getRecommendations(modelType: string, metrics?: Record<string, any>): Recommendation[] {
+    // Default return empty array if no model type
+    if (!modelType) return [];
+    
+    // Get recommendations based on model type
+    const modelRecommendations = this._getModelSpecificRecommendations(modelType);
+    
+    // If metrics available, filter and sort by relevance
+    if (metrics && Object.keys(metrics).length > 0) {
+      return this._enhanceRecommendationsWithMetrics(modelRecommendations, metrics);
     }
-  ],
-  'arima': [
-    {
-      id: 'arima-differencing',
-      type: 'action',
-      title: 'Ajustar nivel de diferenciación',
-      description: 'Considere aumentar el nivel de diferenciación para mejorar la estacionariedad',
-      priority: 'medium',
-      modelType: 'arima',
-      actionable: true,
-      source: 'forecasting-toolkit'
-    },
-    {
-      id: 'arima-forecasting-horizon',
-      type: 'insight',
-      title: 'Horizonte de pronóstico óptimo',
-      description: 'Este modelo tiene un horizonte de pronóstico óptimo de aproximadamente 10 períodos',
-      priority: 'low',
-      modelType: 'arima',
-      actionable: false,
-      source: 'forecasting-toolkit'
-    }
-  ],
-  'kmeans': [
-    {
-      id: 'kmeans-optimal-clusters',
-      type: 'action',
-      title: 'Optimizar número de clusters',
-      description: 'Utilice el método del codo o silueta para encontrar el número óptimo de clusters',
-      priority: 'high',
-      modelType: 'kmeans',
-      actionable: true,
-      source: 'clustering-toolkit'
-    },
-    {
-      id: 'kmeans-feature-scaling',
-      type: 'action',
-      title: 'Escalado de características',
-      description: 'Normalice o estandarice las características para mejorar la calidad de los clusters',
-      priority: 'medium',
-      modelType: 'kmeans',
-      actionable: true,
-      source: 'clustering-toolkit'
-    }
-  ],
-  'random_forest': [
-    {
-      id: 'rf-feature-importance',
-      type: 'insight',
-      title: 'Importancia de características',
-      description: 'Analice las características más importantes para entender los factores predictivos clave',
-      priority: 'high',
-      modelType: 'random_forest',
-      actionable: true,
-      source: 'sklearn-toolkit'
-    },
-    {
-      id: 'rf-hyperparameter-tuning',
-      type: 'action',
-      title: 'Ajuste de hiperparámetros',
-      description: 'Optimice los hiperparámetros del modelo para mejorar su rendimiento',
-      priority: 'medium',
-      modelType: 'random_forest',
-      actionable: true,
-      source: 'sklearn-toolkit'
-    }
-  ],
-  'xgboost': [
-    {
-      id: 'xgb-early-stopping',
-      type: 'action',
-      title: 'Implementar early stopping',
-      description: 'Utilice early stopping para prevenir el sobreajuste y optimizar el entrenamiento',
-      priority: 'medium',
-      modelType: 'xgboost',
-      actionable: true,
-      source: 'sklearn-toolkit'
-    },
-    {
-      id: 'xgb-feature-engineering',
-      type: 'action',
-      title: 'Ingeniería de características',
-      description: 'Considere crear características derivadas para mejorar el rendimiento del modelo',
-      priority: 'high',
-      modelType: 'xgboost',
-      actionable: true,
-      source: 'sklearn-toolkit'
-    }
-  ]
-};
-
-// Function to get available MCP tools filtered by model type
-export const getCompatibleMCPTools = (modelType: string): MCPTool[] => {
-  return mcpTools.filter(tool => 
-    tool.supportedModelTypes.includes(modelType)
-  );
-};
-
-// Function to get recommendations based on model type and results
-export const getRecommendations = (modelType: string, metrics?: Record<string, any>): Recommendation[] => {
-  // Start with predefined recommendations for this model type
-  let recommendations = predefinedRecommendations[modelType] || [];
+    
+    return modelRecommendations;
+  },
   
-  // Generate dynamic recommendations based on metrics
-  if (metrics) {
-    // Example: Add accuracy-based recommendations for classification models
-    if (['random_forest', 'xgboost', 'svm', 'logistic_regression', 'naive_bayes'].includes(modelType) && 
-        metrics.accuracy !== undefined) {
-      
-      if (metrics.accuracy < 0.7) {
-        recommendations.push({
-          id: 'low-accuracy',
-          type: 'action',
-          title: 'Mejorar precisión del modelo',
-          description: `La precisión actual es ${(metrics.accuracy * 100).toFixed(1)}%. Considere recolectar más datos o ajustar hiperparámetros.`,
-          priority: 'high',
-          modelType,
-          actionable: true,
-          source: 'sklearn-toolkit'
-        });
-      }
-      
-      // Add class imbalance recommendation if applicable
-      if (metrics.class_balance && Math.min(...Object.values(metrics.class_balance)) < 0.1) {
-        recommendations.push({
-          id: 'class-imbalance',
-          type: 'action',
-          title: 'Corregir desbalance de clases',
-          description: 'Los datos muestran un desbalance significativo entre clases. Considere técnicas de muestreo como SMOTE o ajuste de pesos.',
-          priority: 'critical',
-          modelType,
-          actionable: true,
-          source: 'sklearn-toolkit'
-        });
-      }
-    }
+  /**
+   * Get complementary analyses for the current model and industry
+   */
+  getComplementaryAnalyses(modelType: string, industry: string): any[] {
+    if (!modelType) return [];
     
-    // Example: Add RMSE-based recommendations for regression models
-    if (['linear_regression', 'ridge_regression'].includes(modelType) && 
-        metrics.rmse !== undefined && metrics.mean_target !== undefined) {
-      
-      const relativeError = metrics.rmse / Math.abs(metrics.mean_target);
-      if (relativeError > 0.3) {
-        recommendations.push({
-          id: 'high-rmse',
-          type: 'action',
-          title: 'Reducir error de predicción',
-          description: `El RMSE relativo es alto (${(relativeError * 100).toFixed(1)}%). Considere transformaciones no lineales o regularización.`,
-          priority: 'high',
-          modelType,
-          actionable: true,
-          source: 'sklearn-toolkit'
-        });
-      }
-    }
+    return COMPLEMENTARY_ANALYSES
+      .filter(analysis => 
+        analysis.applicableModels.includes(modelType) || 
+        analysis.applicableIndustries.includes(industry)
+      )
+      .slice(0, 4); // Limit to 4 recommendations
+  },
+  
+  /**
+   * Get compatible MCP tools for a model type
+   */
+  getCompatibleMCPTools(modelType: string): MCPTool[] {
+    if (!modelType) return [];
     
-    // Example: Add recommendations for time series models
-    if (['sarima', 'arima', 'prophet', 'exponential_smoothing'].includes(modelType) &&
-        metrics.mape !== undefined) {
+    return MCP_TOOLS.filter(tool => 
+      tool.compatibleModels.includes(modelType) ||
+      tool.compatibleModels.includes('any')
+    );
+  },
+  
+  /**
+   * Execute an MCP tool with parameters
+   */
+  async executeMCPTool(toolId: string, params: Record<string, any> = {}): Promise<any> {
+    try {
+      const tool = MCP_TOOLS.find(t => t.id === toolId);
+      if (!tool) {
+        throw new Error(`Tool ${toolId} not found`);
+      }
       
+      toast.info(`Conectando con herramienta: ${tool.name}`);
+      
+      // Simulate API call with timeout
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      if (Math.random() > 0.8) {
+        throw new Error("Error de conexión simulado");
+      }
+      
+      toast.success(`Operación completada con ${tool.name}`);
+      return { success: true, toolId, params };
+    } catch (error: any) {
+      console.error('Error executing MCP tool:', error);
+      toast.error(`Error al ejecutar herramienta: ${error.message}`);
+      throw error;
+    }
+  },
+  
+  /**
+   * Get model specific recommendations
+   * @private
+   */
+  _getModelSpecificRecommendations(modelType: string): Recommendation[] {
+    // Find recommendations for the model type
+    switch (modelType) {
+      case 'sarima':
+      case 'arima':
+      case 'prophet':
+        return TIME_SERIES_RECOMMENDATIONS;
+      case 'kmeans':
+      case 'hierarchical':
+      case 'dbscan':
+        return CLUSTERING_RECOMMENDATIONS;
+      case 'random_forest':
+      case 'xgboost':
+      case 'logistic_regression':
+        return CLASSIFICATION_RECOMMENDATIONS;
+      case 'pca':
+      case 'tsne':
+      case 'umap':
+        return DIMENSIONALITY_RECOMMENDATIONS;
+      default:
+        return GENERAL_RECOMMENDATIONS;
+    }
+  },
+  
+  /**
+   * Enhance recommendations based on metrics
+   * @private
+   */
+  _enhanceRecommendationsWithMetrics(recommendations: Recommendation[], metrics: Record<string, any>): Recommendation[] {
+    // For time series models
+    if ('mape' in metrics && typeof metrics.mape === 'number') {
       if (metrics.mape > 15) {
         recommendations.push({
           id: 'high-mape',
           type: 'action',
-          title: 'Mejorar precisión del pronóstico',
-          description: `El MAPE es ${metrics.mape.toFixed(1)}%. Considere incluir variables externas o ajustar estacionalidad.`,
+          title: 'Error de predicción elevado (MAPE)',
+          description: `El MAPE actual de ${metrics.mape.toFixed(2)}% es alto. Considere ajustar los parámetros del modelo o incluir variables exógenas adicionales.`,
           priority: 'high',
-          modelType,
-          actionable: true,
-          source: 'forecasting-toolkit'
+          source: 'mcp_ts_analyzer',
+          actionable: true
         });
       }
-      
-      if (metrics.residual_autocorrelation && metrics.residual_autocorrelation > 0.2) {
+    }
+    
+    // For classification models
+    if ('accuracy' in metrics && typeof metrics.accuracy === 'number') {
+      if (metrics.accuracy < 0.7) {
         recommendations.push({
-          id: 'residual-autocorrelation',
+          id: 'low-accuracy',
           type: 'action',
-          title: 'Estructura en residuales',
-          description: 'Los residuales muestran autocorrelación. Considere ajustar los términos AR o MA del modelo.',
-          priority: 'medium',
-          modelType,
-          actionable: true,
-          source: 'forecasting-toolkit'
+          title: 'Precisión baja del modelo',
+          description: `La precisión actual de ${(metrics.accuracy * 100).toFixed(1)}% es subóptima. Considere técnicas de feature engineering o ajustar hiperparámetros.`,
+          priority: 'high',
+          source: 'mcp_class_analyzer',
+          actionable: true
         });
       }
     }
-  }
-  
-  // Sort recommendations by priority
-  const priorityOrder = { 'critical': 0, 'high': 1, 'medium': 2, 'low': 3 };
-  recommendations.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
-  
-  return recommendations;
-};
-
-// Function to get complementary analyses that would be beneficial
-export const getComplementaryAnalyses = (modelType: string, industry: string): Recommendation[] => {
-  const complementary: Recommendation[] = [];
-  
-  // Suggest complementary analyses based on model type
-  if (['sarima', 'arima', 'prophet', 'exponential_smoothing'].includes(modelType)) {
-    complementary.push({
-      id: 'anomaly-detection',
-      type: 'analysis',
-      title: 'Detección de anomalías',
-      description: 'Identifique valores atípicos y patrones anómalos en sus series temporales',
-      priority: 'high',
-      modelType: 'anomaly_detection',
-      actionable: true,
-      source: 'anomaly-detection'
-    });
     
-    complementary.push({
-      id: 'causal-impact',
-      type: 'analysis',
-      title: 'Análisis de impacto causal',
-      description: 'Evalúe el impacto de intervenciones o eventos en sus métricas temporales',
-      priority: 'medium',
-      modelType: 'causal_impact',
-      actionable: true,
-      source: 'forecasting-toolkit'
-    });
-  }
-  
-  if (['kmeans', 'hierarchical', 'dbscan'].includes(modelType)) {
-    complementary.push({
-      id: 'dimension-reduction',
-      type: 'analysis',
-      title: 'Reducción de dimensionalidad',
-      description: 'Visualice sus clusters en 2D o 3D mediante PCA o t-SNE',
-      priority: 'medium',
-      modelType: 'pca',
-      actionable: true,
-      source: 'dimension-toolkit'
-    });
-    
-    complementary.push({
-      id: 'cluster-profiling',
-      type: 'analysis',
-      title: 'Perfilado de clusters',
-      description: 'Caracterice cada cluster según sus atributos distintivos',
-      priority: 'high',
-      modelType: 'cluster_profiling',
-      actionable: true,
-      source: 'clustering-toolkit'
-    });
-  }
-  
-  if (['random_forest', 'xgboost', 'svm', 'logistic_regression', 'naive_bayes'].includes(modelType)) {
-    complementary.push({
-      id: 'feature-importance',
-      type: 'analysis',
-      title: 'Importancia de características',
-      description: 'Analice las características más relevantes para su modelo',
-      priority: 'high',
-      modelType: 'feature_importance',
-      actionable: true,
-      source: 'sklearn-toolkit'
-    });
-    
-    complementary.push({
-      id: 'model-comparison',
-      type: 'analysis',
-      title: 'Comparación de modelos',
-      description: 'Compare el rendimiento de diferentes algoritmos de clasificación',
-      priority: 'medium',
-      modelType: 'model_comparison',
-      actionable: true,
-      source: 'sklearn-toolkit'
-    });
-  }
-  
-  // Industry-specific recommendations
-  if (industry === 'retail') {
-    complementary.push({
-      id: 'retail-basket-analysis',
-      type: 'analysis',
-      title: 'Análisis de canasta de compra',
-      description: 'Identifique patrones de compra conjunta y reglas de asociación',
-      priority: 'high',
-      modelType: 'association_rules',
-      actionable: true,
-      source: 'sklearn-toolkit'
-    });
-  } else if (industry === 'finanzas') {
-    complementary.push({
-      id: 'risk-assessment',
-      type: 'analysis',
-      title: 'Evaluación de riesgo',
-      description: 'Analice el riesgo y la volatilidad en sus datos financieros',
-      priority: 'critical',
-      modelType: 'risk_models',
-      actionable: true,
-      source: 'sklearn-toolkit'
-    });
-  }
-  
-  return complementary;
-};
-
-// Function to execute an external MCP tool
-export const executeMCPTool = async (
-  toolId: string, 
-  params: Record<string, any>
-): Promise<any> => {
-  try {
-    const tool = mcpTools.find(t => t.id === toolId);
-    if (!tool) {
-      throw new Error(`Tool with id ${toolId} not found`);
-    }
-    
-    // Check if all required parameters are provided
-    const missingParams = tool.requiredParams.filter(param => !(param in params));
-    if (missingParams.length > 0) {
-      throw new Error(`Missing required parameters: ${missingParams.join(', ')}`);
-    }
-    
-    // In a real implementation, this would make an actual API call
-    // For now, we'll simulate a successful response
-    toast.info(`Executing ${tool.name}...`);
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Return simulated result
-    return {
-      success: true,
-      toolId,
-      results: {
-        message: `Successfully executed ${tool.name}`,
-        timestamp: new Date().toISOString(),
-        executionTime: Math.random() * 5 + 0.5, // Random time between 0.5 and 5.5 seconds
-        // Additional simulated results would go here
+    // For clustering models
+    if ('silhouette_score' in metrics && typeof metrics.silhouette_score === 'number') {
+      if (metrics.silhouette_score < 0.5) {
+        recommendations.push({
+          id: 'low-silhouette',
+          type: 'action',
+          title: 'Separación de clusters deficiente',
+          description: `El índice de silueta de ${metrics.silhouette_score.toFixed(2)} indica clusters mal definidos. Pruebe diferentes algoritmos o ajuste el número de clusters.`,
+          priority: 'medium',
+          source: 'mcp_cluster_analyzer',
+          actionable: true
+        });
       }
-    };
-  } catch (error: any) {
-    toast.error(`Error executing MCP tool: ${error.message}`);
-    throw error;
+    }
+    
+    return recommendations;
   }
 };
 
-// Export the MCP integration service
-export const mcpIntegrationService = {
-  getCompatibleMCPTools,
-  getRecommendations,
-  getComplementaryAnalyses,
-  executeMCPTool
-};
+// Time series model recommendations
+const TIME_SERIES_RECOMMENDATIONS: Recommendation[] = [
+  {
+    id: 'ts-seasonal',
+    type: 'action',
+    title: 'Optimizar parámetros estacionales',
+    description: 'Ajuste los parámetros estacionales para mejorar la precisión de las predicciones. Los patrones estacionales detectados pueden tener diferentes frecuencias.',
+    priority: 'medium',
+    source: 'statsmodels',
+    actionable: true
+  },
+  {
+    id: 'ts-pattern',
+    type: 'insight',
+    title: 'Patrones estacionales detectados',
+    description: 'Se han detectado patrones estacionales significativos en los datos. Esto puede indicar ciclos repetitivos que afectan las variables objetivo.',
+    priority: 'low',
+    source: 'prophet_analyzer',
+    actionable: false
+  },
+  {
+    id: 'ts-exogenous',
+    type: 'action',
+    title: 'Incluir variables exógenas',
+    description: 'Incorporar variables externas como indicadores económicos o eventos podría mejorar significativamente el rendimiento del modelo.',
+    priority: 'high',
+    source: 'sarima_enhancer',
+    actionable: true
+  },
+  {
+    id: 'ts-outliers',
+    type: 'action',
+    title: 'Detectar y tratar outliers',
+    description: 'Se detectaron valores atípicos que pueden estar afectando la calidad de las predicciones. Se recomienda una estrategia de tratamiento de outliers.',
+    priority: 'medium',
+    source: 'outlier_detector',
+    actionable: true
+  }
+];
+
+// Clustering model recommendations
+const CLUSTERING_RECOMMENDATIONS: Recommendation[] = [
+  {
+    id: 'cluster-k',
+    type: 'action',
+    title: 'Evaluar número de clusters',
+    description: 'Pruebe diferentes valores de k para optimizar la agrupación. El método del codo o silueta puede ayudar a determinar el número óptimo.',
+    priority: 'high',
+    source: 'scikit_learn',
+    actionable: true
+  },
+  {
+    id: 'cluster-balance',
+    type: 'insight',
+    title: 'Clusters desequilibrados',
+    description: 'Algunos clusters tienen muchos más elementos que otros. Esto puede indicar estructura de datos inherente o problemas con la configuración del modelo.',
+    priority: 'medium',
+    source: 'cluster_analyzer',
+    actionable: false
+  },
+  {
+    id: 'cluster-scaling',
+    type: 'action',
+    title: 'Escalar características',
+    description: 'Las variables no están en la misma escala, lo que puede sesgar los resultados del clustering. Se recomienda normalizar o estandarizar las variables.',
+    priority: 'high',
+    source: 'data_preprocessor',
+    actionable: true
+  },
+  {
+    id: 'cluster-viz',
+    type: 'tool',
+    title: 'Visualización 3D de clusters',
+    description: 'La complejidad de los datos puede requerir visualizaciones avanzadas. Pruebe técnicas de reducción de dimensionalidad para visualizar mejor los clusters.',
+    priority: 'low',
+    source: 'cluster_viz',
+    actionable: true
+  }
+];
+
+// Classification model recommendations
+const CLASSIFICATION_RECOMMENDATIONS: Recommendation[] = [
+  {
+    id: 'class-features',
+    type: 'action',
+    title: 'Considerar feature engineering',
+    description: 'Cree nuevas variables basadas en las existentes para mejorar el rendimiento del modelo. La interacción entre características puede revelar patrones ocultos.',
+    priority: 'medium',
+    source: 'feature_engineer',
+    actionable: true
+  },
+  {
+    id: 'class-imbalance',
+    type: 'action',
+    title: 'Tratar desbalance de clases',
+    description: 'Las clases están desbalanceadas, lo que puede sesgar el modelo. Considere técnicas de sobremuestreo o submuestreo para equilibrar las clases.',
+    priority: 'high',
+    source: 'imbalance_handler',
+    actionable: true
+  },
+  {
+    id: 'class-importance',
+    type: 'insight',
+    title: 'Variables importantes identificadas',
+    description: 'Un pequeño conjunto de variables tiene una influencia desproporcionada en las predicciones. Centrarse en estas variables puede simplificar el modelo.',
+    priority: 'medium',
+    source: 'feature_analyzer',
+    actionable: false
+  },
+  {
+    id: 'class-threshold',
+    type: 'action',
+    title: 'Optimizar umbral de decisión',
+    description: 'Ajustar el umbral de probabilidad para optimizar precision, recall o F1-score según los objetivos del negocio.',
+    priority: 'medium',
+    source: 'threshold_optimizer',
+    actionable: true
+  }
+];
+
+// Dimensionality reduction recommendations
+const DIMENSIONALITY_RECOMMENDATIONS: Recommendation[] = [
+  {
+    id: 'dim-components',
+    type: 'action',
+    title: 'Optimizar número de componentes',
+    description: 'Pruebe diferentes números de componentes para encontrar el equilibrio entre simplicidad y varianza explicada.',
+    priority: 'medium',
+    source: 'pca_optimizer',
+    actionable: true
+  },
+  {
+    id: 'dim-interpret',
+    type: 'insight',
+    title: 'Interpretación de componentes',
+    description: 'Los componentes principales muestran patrones interesantes que pueden tener significado en el contexto del negocio.',
+    priority: 'low',
+    source: 'component_analyzer',
+    actionable: false
+  },
+  {
+    id: 'dim-perplexity',
+    type: 'action',
+    title: 'Ajustar parámetro de perplejidad',
+    description: 'Para t-SNE, ajustar la perplejidad puede mejorar significativamente la calidad de la visualización y revelar estructuras ocultas.',
+    priority: 'medium',
+    source: 'tsne_optimizer',
+    actionable: true
+  }
+];
+
+// General recommendations for any model type
+const GENERAL_RECOMMENDATIONS: Recommendation[] = [
+  {
+    id: 'gen-missing',
+    type: 'action',
+    title: 'Tratar datos faltantes',
+    description: 'Se detectaron valores faltantes que pueden estar afectando el rendimiento. Considere estrategias de imputación más avanzadas.',
+    priority: 'high',
+    source: 'data_cleaner',
+    actionable: true
+  },
+  {
+    id: 'gen-validation',
+    type: 'action',
+    title: 'Mejorar estrategia de validación',
+    description: 'Una validación más robusta (como k-fold cross-validation) podría proporcionar una estimación más confiable del rendimiento del modelo.',
+    priority: 'medium',
+    source: 'validation_enhancer',
+    actionable: true
+  },
+  {
+    id: 'gen-feature',
+    type: 'insight',
+    title: 'Reducción de dimensionalidad recomendada',
+    description: 'El alto número de variables puede causar sobreajuste. Considere técnicas como PCA o selección de características.',
+    priority: 'medium',
+    source: 'dimension_analyzer',
+    actionable: false
+  }
+];
+
+// Complementary analyses
+const COMPLEMENTARY_ANALYSES = [
+  {
+    id: 'anomaly_detection',
+    type: 'analysis',
+    title: 'Detección de anomalías',
+    description: 'Identifica valores atípicos y eventos inusuales en sus datos',
+    source: 'anomaly_detector',
+    applicableModels: ['sarima', 'arima', 'prophet', 'exponential_smoothing'],
+    applicableIndustries: ['finanzas', 'manufactura', 'retail']
+  },
+  {
+    id: 'sensitivity_analysis',
+    type: 'analysis',
+    title: 'Análisis de sensibilidad',
+    description: 'Evalúa cómo las variaciones en los inputs afectan los outputs del modelo',
+    source: 'sensitivity_analyzer',
+    applicableModels: ['random_forest', 'xgboost', 'logistic_regression'],
+    applicableIndustries: ['finanzas', 'salud', 'retail']
+  },
+  {
+    id: 'cluster_profiling',
+    type: 'analysis',
+    title: 'Perfilado de clusters',
+    description: 'Caracteriza cada grupo identificado por sus atributos más distintivos',
+    source: 'cluster_profiler',
+    applicableModels: ['kmeans', 'hierarchical', 'dbscan'],
+    applicableIndustries: ['retail', 'finanzas', 'salud']
+  },
+  {
+    id: 'feature_importance',
+    type: 'analysis',
+    title: 'Importancia de variables',
+    description: 'Analiza la contribución de cada variable al rendimiento del modelo',
+    source: 'feature_analyzer',
+    applicableModels: ['random_forest', 'xgboost', 'logistic_regression'],
+    applicableIndustries: ['tecnologia', 'finanzas', 'salud']
+  },
+  {
+    id: 'causal_analysis',
+    type: 'analysis',
+    title: 'Análisis causal',
+    description: 'Explora relaciones causa-efecto entre variables para entender mecanismos subyacentes',
+    source: 'causal_analyzer',
+    applicableModels: ['regression', 'structural_equation', 'bayesian_networks'],
+    applicableIndustries: ['finanzas', 'salud', 'educacion']
+  },
+  {
+    id: 'seasonality_decomposition',
+    type: 'analysis',
+    title: 'Descomposición estacional',
+    description: 'Separa tendencia, estacionalidad y residuos en series temporales',
+    source: 'seasonal_decomposer',
+    applicableModels: ['sarima', 'arima', 'prophet'],
+    applicableIndustries: ['retail', 'finanzas', 'tecnologia']
+  },
+  {
+    id: 'correlation_network',
+    type: 'analysis',
+    title: 'Redes de correlación',
+    description: 'Visualiza relaciones complejas entre múltiples variables como una red',
+    source: 'correlation_network',
+    applicableModels: ['any'],
+    applicableIndustries: ['finanzas', 'salud', 'retail']
+  },
+  {
+    id: 'survival_analysis',
+    type: 'analysis',
+    title: 'Análisis de supervivencia',
+    description: 'Analiza el tiempo hasta que ocurre un evento de interés',
+    source: 'survival_analyzer',
+    applicableModels: ['cox_regression', 'kaplan_meier'],
+    applicableIndustries: ['salud', 'finanzas', 'retail']
+  }
+];
+
+// MCP Compatible Tools
+const MCP_TOOLS: (MCPTool & { compatibleModels: string[] })[] = [
+  {
+    id: 'statsmodels',
+    name: 'StatsModels',
+    description: 'Modelos estadísticos y tests para Python',
+    category: 'Estadística',
+    sourceUrl: 'https://github.com/statsmodels/statsmodels',
+    apiEndpoint: 'https://api.mcp-platform.com/tools/statsmodels',
+    compatibleModels: ['sarima', 'arima', 'linear_regression', 'any']
+  },
+  {
+    id: 'prophet',
+    name: 'Prophet',
+    description: 'Herramienta de forecasting de Facebook',
+    category: 'Series temporales',
+    sourceUrl: 'https://github.com/facebook/prophet',
+    apiEndpoint: 'https://api.mcp-platform.com/tools/prophet',
+    compatibleModels: ['prophet', 'sarima', 'arima', 'exponential_smoothing']
+  },
+  {
+    id: 'scikit_learn',
+    name: 'Scikit-Learn',
+    description: 'Biblioteca de aprendizaje automático para Python',
+    category: 'ML General',
+    sourceUrl: 'https://github.com/scikit-learn/scikit-learn',
+    apiEndpoint: 'https://api.mcp-platform.com/tools/sklearn',
+    compatibleModels: ['random_forest', 'kmeans', 'pca', 'svm', 'any']
+  },
+  {
+    id: 'xgboost',
+    name: 'XGBoost',
+    description: 'Biblioteca optimizada de Gradient Boosting',
+    category: 'ML Avanzado',
+    sourceUrl: 'https://github.com/dmlc/xgboost',
+    apiEndpoint: 'https://api.mcp-platform.com/tools/xgboost',
+    compatibleModels: ['xgboost', 'random_forest']
+  },
+  {
+    id: 'shap',
+    name: 'SHAP',
+    description: 'Explicaciones de modelos basadas en valores Shapley',
+    category: 'Explicabilidad',
+    sourceUrl: 'https://github.com/slundberg/shap',
+    apiEndpoint: 'https://api.mcp-platform.com/tools/shap',
+    compatibleModels: ['random_forest', 'xgboost', 'logistic_regression', 'any']
+  },
+  {
+    id: 'optuna',
+    name: 'Optuna',
+    description: 'Framework de optimización de hiperparámetros',
+    category: 'Optimización',
+    sourceUrl: 'https://github.com/optuna/optuna',
+    apiEndpoint: 'https://api.mcp-platform.com/tools/optuna',
+    compatibleModels: ['any']
+  },
+  {
+    id: 'yellowbrick',
+    name: 'Yellowbrick',
+    description: 'Visualizadores para análisis de modelos ML',
+    category: 'Visualización',
+    sourceUrl: 'https://github.com/DistrictDataLabs/yellowbrick',
+    compatibleModels: ['kmeans', 'random_forest', 'pca', 'any']
+  },
+  {
+    id: 'alibi_detect',
+    name: 'Alibi Detect',
+    description: 'Detección de anomalías y drift en datos',
+    category: 'Monitoreo',
+    sourceUrl: 'https://github.com/SeldonIO/alibi-detect',
+    apiEndpoint: 'https://api.mcp-platform.com/tools/alibi',
+    compatibleModels: ['any']
+  },
+  {
+    id: 'tsne_viz',
+    name: 't-SNE Visualizer',
+    description: 'Visualización avanzada con t-SNE',
+    category: 'Visualización',
+    sourceUrl: 'https://github.com/oreillymedia/t-SNE-tutorial',
+    compatibleModels: ['pca', 'tsne', 'umap']
+  },
+  {
+    id: 'lime',
+    name: 'LIME',
+    description: 'Explicaciones locales para modelos de caja negra',
+    category: 'Explicabilidad',
+    sourceUrl: 'https://github.com/marcotcr/lime',
+    apiEndpoint: 'https://api.mcp-platform.com/tools/lime',
+    compatibleModels: ['random_forest', 'xgboost', 'svm', 'any']
+  },
+  {
+    id: 'sktime',
+    name: 'sktime',
+    description: 'Biblioteca unificada para ML con series temporales',
+    category: 'Series temporales',
+    sourceUrl: 'https://github.com/alan-turing-institute/sktime',
+    apiEndpoint: 'https://api.mcp-platform.com/tools/sktime',
+    compatibleModels: ['sarima', 'arima', 'prophet']
+  },
+  {
+    id: 'feature_engine',
+    name: 'Feature Engine',
+    description: 'Transformación y selección de características',
+    category: 'Preprocesamiento',
+    sourceUrl: 'https://github.com/feature-engine/feature_engine',
+    apiEndpoint: 'https://api.mcp-platform.com/tools/feature-engine',
+    compatibleModels: ['random_forest', 'xgboost', 'linear_regression', 'any']
+  }
+];

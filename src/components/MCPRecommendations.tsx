@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ArrowUpRight, CheckCircle, AlertCircle, Info, Lightbulb, Tool } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowUpRight, CheckCircle, AlertCircle, Info, Lightbulb, Settings, FileBarChart2 } from "lucide-react";
 import { mcpIntegrationService, Recommendation, MCPTool } from '@/services/mcpIntegrationService';
 
 interface MCPRecommendationsProps {
@@ -12,6 +13,18 @@ interface MCPRecommendationsProps {
   industry: string;
   metrics?: Record<string, any>;
   result?: any;
+}
+
+// Define different analysis flows and their complementary blocks
+interface AnalysisFlow {
+  id: string;
+  name: string;
+  description: string;
+  tags: string[];
+  requiredInputs: string[];
+  outputs: string[];
+  recommendedVisualizations: string[];
+  modelTypes: string[];
 }
 
 export const MCPRecommendations: React.FC<MCPRecommendationsProps> = ({
@@ -22,6 +35,7 @@ export const MCPRecommendations: React.FC<MCPRecommendationsProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState<Record<string, boolean>>({});
   const [expandedRecommendation, setExpandedRecommendation] = useState<string | null>(null);
+  const [selectedFlowTab, setSelectedFlowTab] = useState<string>("insights");
   
   // Get recommendations based on model type and metrics
   const recommendations = mcpIntegrationService.getRecommendations(modelType, metrics);
@@ -31,6 +45,60 @@ export const MCPRecommendations: React.FC<MCPRecommendationsProps> = ({
   
   // Get compatible MCP tools
   const compatibleTools = mcpIntegrationService.getCompatibleMCPTools(modelType);
+
+  // Analysis flow methodologies that complement each other
+  const analysisFlows: AnalysisFlow[] = [
+    {
+      id: "descriptive",
+      name: "Análisis Descriptivo",
+      description: "Comprende qué ha ocurrido en el pasado a través del análisis de datos históricos",
+      tags: ["Histórico", "Tendencias", "Patrones"],
+      requiredInputs: ["Datos históricos", "Variables categóricas y numéricas", "Series temporales"],
+      outputs: ["Tendencias identificadas", "Patrones estacionales", "Segmentación básica"],
+      recommendedVisualizations: ["Series temporales", "Distribuciones", "Heatmaps", "Gráficos de barras"],
+      modelTypes: ["statistical", "clustering"]
+    },
+    {
+      id: "diagnostic",
+      name: "Análisis Diagnóstico",
+      description: "Identifica por qué ocurrieron ciertos eventos analizando relaciones causales",
+      tags: ["Causalidad", "Correlación", "Anomalías"],
+      requiredInputs: ["Datos procesados", "Variables dependientes e independientes", "Eventos"],
+      outputs: ["Factores causales", "Correlaciones significativas", "Detección de anomalías"],
+      recommendedVisualizations: ["Gráficos de dispersión", "Correlaciones", "Diagramas de caja"],
+      modelTypes: ["regression", "classification"]
+    },
+    {
+      id: "predictive",
+      name: "Análisis Predictivo",
+      description: "Anticipa qué podría ocurrir en el futuro mediante modelos predictivos",
+      tags: ["Forecast", "Predicción", "Escenarios"],
+      requiredInputs: ["Datos históricos limpios", "Variables predictoras", "Parámetros temporales"],
+      outputs: ["Predicciones", "Intervalos de confianza", "Escenarios futuros"],
+      recommendedVisualizations: ["Proyecciones", "Bandas de confianza", "Comparativas actual vs predicción"],
+      modelTypes: ["time_series", "regression", "deep_learning"]
+    },
+    {
+      id: "prescriptive",
+      name: "Análisis Prescriptivo",
+      description: "Recomienda acciones a tomar basadas en los resultados predictivos",
+      tags: ["Optimización", "Decisiones", "Estrategia"],
+      requiredInputs: ["Resultados predictivos", "Objetivos del negocio", "Restricciones operativas"],
+      outputs: ["Recomendaciones accionables", "Plan de implementación", "Impacto esperado"],
+      recommendedVisualizations: ["Diagramas de impacto", "Gráficos de decisión", "Dashboards interactivos"],
+      modelTypes: ["optimization", "reinforcement_learning"]
+    },
+    {
+      id: "exploratory",
+      name: "Análisis Exploratorio",
+      description: "Descubre patrones ocultos y relaciones no evidentes en los datos",
+      tags: ["Descubrimiento", "Inspección", "Visualización"],
+      requiredInputs: ["Datos crudos", "Múltiples fuentes", "Variables sin filtrar"],
+      outputs: ["Insights preliminares", "Hipótesis", "Direcciones de investigación"],
+      recommendedVisualizations: ["Matrices de correlación", "Clustering visual", "PCA/t-SNE"],
+      modelTypes: ["clustering", "dimensionality_reduction"]
+    }
+  ];
   
   const handleExecuteTool = async (toolId: string) => {
     setIsLoading({...isLoading, [toolId]: true});
@@ -64,7 +132,7 @@ export const MCPRecommendations: React.FC<MCPRecommendationsProps> = ({
       case 'insight':
         return <Lightbulb className="h-4 w-4 text-amber-500" />;
       case 'tool':
-        return <Tool className="h-4 w-4 text-purple-500" />;
+        return <Settings className="h-4 w-4 text-purple-500" />;
       case 'analysis':
         return <Info className="h-4 w-4 text-green-500" />;
       default:
@@ -100,8 +168,117 @@ export const MCPRecommendations: React.FC<MCPRecommendationsProps> = ({
     );
   }
 
+  // Find flows compatible with the current model type
+  const compatibleFlows = analysisFlows.filter(flow => 
+    flow.modelTypes.some(type => modelType.includes(type))
+  );
+
   return (
     <div className="space-y-6">
+      {/* Methodology Flows */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center">
+            <FileBarChart2 className="h-5 w-5 mr-2 text-indigo-500" />
+            Flujos de Análisis Metodológico
+          </CardTitle>
+          <CardDescription>
+            Bloques de metodología que se complementan para obtener una visión integral
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue={selectedFlowTab} onValueChange={setSelectedFlowTab}>
+            <TabsList className="grid grid-cols-5 mb-4">
+              {analysisFlows.map(flow => (
+                <TabsTrigger 
+                  key={flow.id} 
+                  value={flow.id}
+                  className={compatibleFlows.some(cf => cf.id === flow.id) ? "font-medium" : "opacity-70"}
+                >
+                  {flow.name}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            
+            {analysisFlows.map(flow => (
+              <TabsContent key={flow.id} value={flow.id} className="space-y-4">
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                  <h3 className="font-medium text-lg">{flow.name}</h3>
+                  <p className="text-muted-foreground">{flow.description}</p>
+                  
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {flow.tags.map(tag => (
+                      <Badge key={tag} variant="outline">{tag}</Badge>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="border rounded-lg p-4">
+                    <h4 className="font-medium mb-2">Datos de entrada requeridos</h4>
+                    <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                      {flow.requiredInputs.map(input => (
+                        <li key={input}>{input}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  <div className="border rounded-lg p-4">
+                    <h4 className="font-medium mb-2">Resultados esperados</h4>
+                    <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                      {flow.outputs.map(output => (
+                        <li key={output}>{output}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  <div className="border rounded-lg p-4">
+                    <h4 className="font-medium mb-2">Visualizaciones recomendadas</h4>
+                    <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                      {flow.recommendedVisualizations.map(viz => (
+                        <li key={viz}>{viz}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                
+                <div className="mt-2">
+                  <h4 className="font-medium">Flujos complementarios recomendados:</h4>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {analysisFlows
+                      .filter(otherFlow => otherFlow.id !== flow.id)
+                      .map(otherFlow => (
+                        <Button 
+                          key={otherFlow.id}
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setSelectedFlowTab(otherFlow.id)}
+                        >
+                          {otherFlow.name}
+                          <ArrowUpRight className="h-3 w-3 ml-1" />
+                        </Button>
+                      ))}
+                  </div>
+                </div>
+                
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mt-4">
+                  <h4 className="font-medium flex items-center">
+                    <Info className="h-4 w-4 mr-2" />
+                    Aplicabilidad al modelo actual
+                  </h4>
+                  <p className="text-sm mt-1">
+                    {compatibleFlows.some(cf => cf.id === flow.id) 
+                      ? `Este flujo es compatible con el modelo ${modelType} seleccionado actualmente.`
+                      : `Este flujo no es óptimo para el modelo ${modelType} actual. Considere cambiar de modelo o ajustar su enfoque.`
+                    }
+                  </p>
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
+        </CardContent>
+      </Card>
+      
       {/* Main Recommendations */}
       <Card>
         <CardHeader className="pb-3">
@@ -220,7 +397,7 @@ export const MCPRecommendations: React.FC<MCPRecommendationsProps> = ({
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center">
-            <Tool className="h-5 w-5 mr-2 text-purple-500" />
+            <Settings className="h-5 w-5 mr-2 text-purple-500" />
             Herramientas MCP compatibles
           </CardTitle>
           <CardDescription>
