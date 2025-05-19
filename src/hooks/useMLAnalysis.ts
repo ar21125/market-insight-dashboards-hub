@@ -1,20 +1,23 @@
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { mlService } from "@/services/mlService";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useMLAnalysis = (fileId: string | null) => {
-  const queryClient = useQueryClient();
-
-  const uploadFileMutation = useMutation({
-    mutationFn: mlService.uploadForAnalysis,
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['analysisResults', data.id] });
-    }
-  });
-
-  const analysisResultsQuery = useQuery({
-    queryKey: ['analysisResults', fileId],
-    queryFn: () => mlService.getAnalysisResults(fileId!),
+  // Query to fetch analysis result
+  const analysisQuery = useQuery({
+    queryKey: ['analysis', fileId],
+    queryFn: async () => {
+      if (!fileId) return null;
+      
+      const { data, error } = await supabase
+        .from('analysis_results')
+        .select('*')
+        .eq('file_id', fileId)
+        .single();
+        
+      if (error) throw error;
+      return data;
+    },
     enabled: !!fileId,
     refetchInterval: (data) => {
       // Check if analysis is still processing
@@ -22,18 +25,12 @@ export const useMLAnalysis = (fileId: string | null) => {
         return 5000; // Poll every 5 seconds
       }
       return false; // Stop polling once complete or failed
-    },
+    }
   });
-
-  const downloadResultsMutation = useMutation({
-    mutationFn: mlService.downloadResults
-  });
-
+  
   return {
-    uploadFile: uploadFileMutation,
-    analysisResults: analysisResultsQuery,
-    downloadResults: downloadResultsMutation,
+    analysisResult: analysisQuery.data,
+    isLoading: analysisQuery.isLoading,
+    error: analysisQuery.error
   };
 };
-
-export default useMLAnalysis;

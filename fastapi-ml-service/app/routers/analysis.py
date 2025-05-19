@@ -116,6 +116,76 @@ async def analyze_from_storage(
         await supabase_service.update_file_status(file_id, "failed")
         raise HTTPException(status_code=500, detail=f"Error starting analysis: {str(e)}")
 
+@router.get("/models")
+async def get_available_models():
+    """Get all supported model types and their descriptions"""
+    
+    models = {
+        # Time series models
+        "sarima": {
+            "name": "SARIMA",
+            "description": "Series temporales estacionales",
+            "category": "time_series",
+            "parameters": ["p", "d", "q", "P", "D", "Q", "s"]
+        },
+        "arima": {
+            "name": "ARIMA",
+            "description": "Series temporales no estacionales",
+            "category": "time_series",
+            "parameters": ["p", "d", "q"]
+        },
+        "prophet": {
+            "name": "Prophet",
+            "description": "Pronósticos múltiples estacionalidades",
+            "category": "time_series",
+            "parameters": ["date_column", "target_column", "forecast_periods"] 
+        },
+        "lstm": {
+            "name": "LSTM",
+            "description": "Redes neuronales recurrentes",
+            "category": "time_series",
+            "parameters": ["sequence_length", "epochs"]
+        },
+        
+        # Classification models
+        "randomForest": {
+            "name": "Random Forest",
+            "description": "Clasificación/Regresión",
+            "category": "classification",
+            "parameters": ["task", "target_column"]
+        },
+        "xgboost": {
+            "name": "XGBoost",
+            "description": "Gradient boosting",
+            "category": "classification",
+            "parameters": ["task", "target_column"]
+        },
+        "svm": {
+            "name": "SVM",
+            "description": "Support Vector Machines",
+            "category": "classification",
+            "parameters": ["task", "target_column"]
+        },
+        
+        # Clustering models
+        "kmeans": {
+            "name": "K-means",
+            "description": "Segmentación",
+            "category": "clustering",
+            "parameters": ["n_clusters"]
+        },
+        
+        # Statistical models
+        "anova": {
+            "name": "ANOVA",
+            "description": "Análisis de varianza",
+            "category": "statistical",
+            "parameters": ["group_column", "value_column"]
+        }
+    }
+    
+    return models
+
 async def process_analysis(
     file_path: str,
     file_id: str,
