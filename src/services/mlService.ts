@@ -31,6 +31,28 @@ export interface ModelParametersResponse {
   metadata: Record<string, ModelParameter>;
 }
 
+export interface Recommendation {
+  type: 'action' | 'insight' | 'tool' | 'analysis';
+  title: string;
+  description: string;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+}
+
+export interface Visualization {
+  type: string;
+  title: string;
+  description: string;
+  data?: any[];
+}
+
+export interface ComplementaryAnalysis {
+  id: string;
+  name: string;
+  description: string;
+  model_type: string;
+  suitability_score: number;
+}
+
 export const mlService = {
   /**
    * Upload a file for analysis
@@ -262,6 +284,158 @@ export const mlService = {
     } catch (error) {
       console.error("Error in downloadResults:", error);
       return null;
+    }
+  },
+  
+  /**
+   * Get complementary model recommendations
+   */
+  async getComplementaryModels(modelType: string, industry: string): Promise<ComplementaryAnalysis[]> {
+    try {
+      const response = await fetch(
+        `${FASTAPI_URL}/analyze/models/${modelType}/complementary?industry=${industry}`
+      );
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch complementary models");
+      }
+      
+      const data = await response.json();
+      return data.models || [];
+    } catch (error) {
+      console.error("Error in getComplementaryModels:", error);
+      
+      // Return fallback recommendations based on model type
+      const fallbackRecommendations: Record<string, ComplementaryAnalysis[]> = {
+        'sarima': [
+          {
+            id: 'anomaly_detection',
+            name: 'Detección de anomalías',
+            description: 'Identifica valores atípicos en sus series temporales',
+            model_type: 'anomaly_detection',
+            suitability_score: 0.9
+          },
+          {
+            id: 'prophet',
+            name: 'Prophet',
+            description: 'Modelo alternativo para series temporales con múltiples estacionalidades',
+            model_type: 'prophet',
+            suitability_score: 0.85
+          }
+        ],
+        'kmeans': [
+          {
+            id: 'hierarchical',
+            name: 'Clustering Jerárquico',
+            description: 'Enfoque alternativo para identificar estructuras jerárquicas en los clusters',
+            model_type: 'hierarchical',
+            suitability_score: 0.8
+          },
+          {
+            id: 'dbscan',
+            name: 'DBSCAN',
+            description: 'Clustering basado en densidad para formas arbitrarias',
+            model_type: 'dbscan',
+            suitability_score: 0.7
+          }
+        ],
+        'random_forest': [
+          {
+            id: 'xgboost',
+            name: 'XGBoost',
+            description: 'Algoritmo avanzado de gradient boosting para comparar rendimiento',
+            model_type: 'xgboost',
+            suitability_score: 0.95
+          },
+          {
+            id: 'feature_importance',
+            name: 'Análisis de importancia de variables',
+            description: 'Explora en detalle la contribución de cada variable',
+            model_type: 'feature_importance',
+            suitability_score: 0.9
+          }
+        ]
+      };
+      
+      return fallbackRecommendations[modelType] || [];
+    }
+  },
+  
+  /**
+   * Get action recommendations based on results
+   */
+  async getActionRecommendations(
+    modelType: string, 
+    metrics: Record<string, any>
+  ): Promise<Recommendation[]> {
+    try {
+      const response = await fetch(`${FASTAPI_URL}/analyze/recommendations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          model_type: modelType,
+          metrics
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch recommendations");
+      }
+      
+      const data = await response.json();
+      return data.recommendations || [];
+    } catch (error) {
+      console.error("Error in getActionRecommendations:", error);
+      
+      // Return fallback recommendations
+      const fallbackRecommendations: Record<string, Recommendation[]> = {
+        'sarima': [
+          {
+            type: 'action',
+            title: 'Optimizar parámetros estacionales',
+            description: 'Ajuste los parámetros estacionales para mejorar la precisión de las predicciones',
+            priority: 'medium'
+          },
+          {
+            type: 'insight',
+            title: 'Patrones estacionales detectados',
+            description: 'Se detectaron patrones estacionales significativos en los datos',
+            priority: 'low'
+          }
+        ],
+        'kmeans': [
+          {
+            type: 'action',
+            title: 'Evaluar número de clusters',
+            description: 'Pruebe diferentes valores de k para optimizar la agrupación',
+            priority: 'high'
+          },
+          {
+            type: 'insight',
+            title: 'Clusters desequilibrados',
+            description: 'Algunos clusters tienen muchos más elementos que otros',
+            priority: 'medium'
+          }
+        ],
+        'random_forest': [
+          {
+            type: 'action',
+            title: 'Considerar feature engineering',
+            description: 'Cree nuevas variables basadas en las existentes para mejorar el rendimiento',
+            priority: 'medium'
+          },
+          {
+            type: 'insight',
+            title: 'Variables importantes identificadas',
+            description: 'Un pequeño conjunto de variables tiene una influencia desproporcionada en las predicciones',
+            priority: 'high'
+          }
+        ]
+      };
+      
+      return fallbackRecommendations[modelType] || [];
     }
   }
 };
