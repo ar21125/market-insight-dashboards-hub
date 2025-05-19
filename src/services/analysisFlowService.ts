@@ -1,4 +1,3 @@
-
 // Analysis Flow Service - Defines specialized flows of complementary analyses by industry
 // This service allows frontend to show users recommended analysis sequences that build upon each other
 
@@ -1108,32 +1107,488 @@ const tecnologiaEngagementFlow: AnalysisFlow = {
   recommendedTools: ['Mixpanel', 'Amplitude', 'Customer.io']
 };
 
-// Function to get all flows for a specific industry
-export const getAnalysisFlowsByIndustry = (industry: string): AnalysisFlow[] => {
-  const allFlows: Record<string, AnalysisFlow[]> = {
-    finanzas: [finanzasCreditRiskFlow, finanzasFraudeDetectionFlow],
-    retail: [retailCustomerLifetimeValueFlow],
-    educacion: [educacionAprendizajeFlow],
-    salud: [saludPredictiveFlow],
-    manufactura: [manufacturaMantenimientoPredictivo],
-    tecnologia: [tecnologiaEngagementFlow]
-  };
-
-  return allFlows[industry] || [];
+// **************************************
+// CROSS-CATEGORY ANALYSIS FLOWS
+// **************************************
+const crossIndustryFinanzasTech: AnalysisFlow = {
+  id: 'cross-finanzas-tech',
+  name: 'Optimización financiera para empresas de tecnología',
+  description: 'Secuencia que combina análisis financieros con patrones de comportamiento de usuarios tecnológicos',
+  industry: 'finanzas',
+  businessGoal: 'Maximizar rentabilidad a través de la optimización de estrategias basadas en comportamiento de usuarios',
+  steps: [
+    {
+      id: 'step1-user-segmentation',
+      name: 'Segmentación de usuarios tecnológicos',
+      description: 'Identifica patrones de uso y preferencias en usuarios de plataformas tecnológicas',
+      modelType: 'kmeans',
+      prerequisiteSteps: [],
+      inputFields: [
+        {
+          name: 'Datos de uso',
+          description: 'Métricas de interacción con la plataforma',
+          example: 'Tabla con Usuario_ID, Tiempo_Uso, Funciones_Utilizadas',
+          required: true,
+          type: 'numeric'
+        },
+        {
+          name: 'Información demográfica',
+          description: 'Datos básicos de usuarios',
+          example: 'Edad: 34, Ubicación: Madrid, Ocupación: Desarrollador',
+          required: true,
+          type: 'categorical'
+        },
+        {
+          name: 'Historial de pagos',
+          description: 'Registro de pagos por servicios',
+          example: 'Tabla con Usuario_ID, Fecha_Pago, Monto, Tipo_Servio',
+          required: true,
+          type: 'numeric'
+        }
+      ],
+      outputInsights: [
+        {
+          name: 'Perfiles de usuarios',
+          description: 'Segmentos con comportamientos financieros y tecnológicos similares',
+          businessValue: 'Permite personalizar ofertas y servicios financieros según perfil tecnológico',
+          visualizationType: 'scatter'
+        },
+        {
+          name: 'Sensibilidad a precios',
+          description: 'Relación entre uso tecnológico y sensibilidad a modelos de precio',
+          businessValue: 'Ayuda a optimizar estrategias de precios y suscripciones',
+          visualizationType: 'heatmap'
+        }
+      ],
+      estimatedProcessingTime: '25-40 minutos',
+      difficulty: 'intermedio'
+    },
+    {
+      id: 'step2-financial-forecast',
+      name: 'Proyección financiera basada en adopción tecnológica',
+      description: 'Predice comportamiento financiero basado en patrones de adopción tecnológica',
+      modelType: 'xgboost',
+      prerequisiteSteps: ['step1-user-segmentation'],
+      inputFields: [
+        {
+          name: 'Segmento de usuario',
+          description: 'Grupo del análisis anterior',
+          example: 'Adoptadores tempranos de alto valor',
+          required: true,
+          type: 'categorical'
+        },
+        {
+          name: 'Historial de inversiones',
+          description: 'Registro de inversiones y rendimientos',
+          example: 'Tabla con Usuario_ID, Tipo_Inversión, Monto, Rendimiento',
+          required: true,
+          type: 'numeric'
+        },
+        {
+          name: 'Tendencias tecnológicas',
+          description: 'Índices de adopción de nuevas tecnologías',
+          example: 'Tabla con Tecnología, Tasa_Adopción, Fecha',
+          required: true,
+          type: 'numeric'
+        }
+      ],
+      outputInsights: [
+        {
+          name: 'Predicción de inversiones',
+          description: 'Proyección de comportamiento inversor basado en perfil tecnológico',
+          businessValue: 'Permite anticipar necesidades de capital y servicios financieros',
+          visualizationType: 'line'
+        },
+        {
+          name: 'Oportunidades de cross-selling',
+          description: 'Productos financieros con mayor probabilidad de adopción',
+          businessValue: 'Optimiza estrategias de venta cruzada entre servicios financieros y tecnológicos',
+          visualizationType: 'bar'
+        }
+      ],
+      estimatedProcessingTime: '35-50 minutos',
+      difficulty: 'avanzado'
+    },
+    {
+      id: 'step3-risk-innovation-balance',
+      name: 'Balance riesgo-innovación',
+      description: 'Optimiza la cartera de inversiones balanceando innovación tecnológica y riesgo financiero',
+      modelType: 'portfolioOptimization',
+      prerequisiteSteps: ['step2-financial-forecast'],
+      inputFields: [
+        {
+          name: 'Riesgo de inversiones',
+          description: 'Perfiles de riesgo de diferentes inversiones',
+          example: 'Tabla con Instrumento, Riesgo, Retorno_Esperado',
+          required: true,
+          type: 'numeric'
+        },
+        {
+          name: 'Índice de innovación',
+          description: 'Cuantificación del nivel de innovación de cada inversión',
+          example: '75/100 - Altamente innovador',
+          required: true,
+          type: 'numeric'
+        },
+        {
+          name: 'Restricciones de cartera',
+          description: 'Límites y requisitos para el balance',
+          example: 'Mín. 20% bajo riesgo, Máx. 30% alta innovación',
+          required: true,
+          type: 'text'
+        }
+      ],
+      outputInsights: [
+        {
+          name: 'Cartera optimizada',
+          description: 'Distribución óptima entre seguridad financiera e innovación',
+          businessValue: 'Maximiza retorno ajustado a riesgo incorporando factor de innovación',
+          visualizationType: 'pie'
+        },
+        {
+          name: 'Escenarios de adopción',
+          description: 'Simulaciones de resultados bajo diferentes escenarios de adopción tecnológica',
+          businessValue: 'Permite planificación adaptativa según evolucionen las tendencias',
+          visualizationType: 'radar'
+        }
+      ],
+      estimatedProcessingTime: '45-70 minutos',
+      difficulty: 'avanzado'
+    }
+  ],
+  totalEstimatedTime: '2-3 horas',
+  recommendedTools: ['Bloomberg Terminal', 'Tableau', 'Python con librerías financieras']
 };
 
-// Function to get a specific flow by ID
+const crossHealthEducation: AnalysisFlow = {
+  id: 'cross-salud-educacion',
+  name: 'Optimización de educación médica basada en resultados',
+  description: 'Secuencia que combina análisis educativos y de salud para mejorar formación de profesionales médicos',
+  industry: 'salud',
+  businessGoal: 'Mejorar resultados de salud mediante optimización de programas formativos',
+  steps: [
+    {
+      id: 'step1-outcomes-analysis',
+      name: 'Análisis de resultados clínicos',
+      description: 'Evalúa los resultados de salud para identificar áreas de mejora',
+      modelType: 'regression',
+      prerequisiteSteps: [],
+      inputFields: [
+        {
+          name: 'Resultados pacientes',
+          description: 'Indicadores de salud post-tratamiento',
+          example: 'Tabla con ID_Paciente, Procedimiento, Resultado, Tiempo_Recuperación',
+          required: true,
+          type: 'numeric'
+        },
+        {
+          name: 'Perfil profesional',
+          description: 'Información sobre formación del profesional que atendió',
+          example: 'Años_Experiencia: 5, Especialización: Cardiología, Centro_Formación: Hospital X',
+          required: true,
+          type: 'categorical'
+        },
+        {
+          name: 'Protocolos aplicados',
+          description: 'Procedimientos y protocolos seguidos',
+          example: 'Protocolo A-35, Versión 2.1, Fecha_Actualización: 2023-10',
+          required: true,
+          type: 'categorical'
+        }
+      ],
+      outputInsights: [
+        {
+          name: 'Factores determinantes',
+          description: 'Variables de formación que más impactan en resultados',
+          businessValue: 'Identifica puntos críticos para intervención educativa',
+          visualizationType: 'bar'
+        },
+        {
+          name: 'Brechas de conocimiento',
+          description: 'Áreas donde existen mayores discrepancias entre formación y práctica',
+          businessValue: 'Permite priorizar áreas de actualización formativa',
+          visualizationType: 'heatmap'
+        }
+      ],
+      estimatedProcessingTime: '30-45 minutos',
+      difficulty: 'intermedio'
+    },
+    {
+      id: 'step2-learning-path-optimization',
+      name: 'Optimización de rutas de aprendizaje médico',
+      description: 'Diseña trayectorias formativas optimizadas según resultados',
+      modelType: 'sequential',
+      prerequisiteSteps: ['step1-outcomes-analysis'],
+      inputFields: [
+        {
+          name: 'Factores críticos',
+          description: 'Variables identificadas en análisis previo',
+          example: 'Lista de factores con ponderación de importancia',
+          required: true,
+          type: 'categorical'
+        },
+        {
+          name: 'Recursos formativos',
+          description: 'Catálogo de módulos formativos disponibles',
+          example: 'Tabla con Módulo, Duración, Competencias, Formato',
+          required: true,
+          type: 'categorical'
+        },
+        {
+          name: 'Restricciones temporales',
+          description: 'Limitaciones de tiempo para formación',
+          example: '120 horas totales, máximo 8 horas semanales',
+          required: true,
+          type: 'text'
+        }
+      ],
+      outputInsights: [
+        {
+          name: 'Secuencias óptimas',
+          description: 'Orden recomendado de módulos formativos',
+          businessValue: 'Maximiza impacto en resultados clínicos con recursos limitados',
+          visualizationType: 'table'
+        },
+        {
+          name: 'Puntos de evaluación',
+          description: 'Momentos críticos para evaluar competencias adquiridas',
+          businessValue: 'Permite ajustes en tiempo real a la ruta formativa',
+          visualizationType: 'line'
+        }
+      ],
+      estimatedProcessingTime: '40-55 minutos',
+      difficulty: 'avanzado'
+    },
+    {
+      id: 'step3-simulation-based-training',
+      name: 'Programa de simulación personalizado',
+      description: 'Genera escenarios de simulación basados en datos reales',
+      modelType: 'generative',
+      prerequisiteSteps: ['step2-learning-path-optimization'],
+      inputFields: [
+        {
+          name: 'Perfiles de aprendizaje',
+          description: 'Estilos de aprendizaje de los profesionales',
+          example: 'Perfil: Visual-práctico, Ritmo: Intensivo',
+          required: true,
+          type: 'categorical'
+        },
+        {
+          name: 'Casos históricos',
+          description: 'Base de casos clínicos anonimizados',
+          example: 'Tabla con Síntomas, Diagnóstico, Complicaciones, Tratamiento',
+          required: true,
+          type: 'categorical'
+        },
+        {
+          name: 'Áreas de mejora',
+          description: 'Competencias específicas a reforzar',
+          example: 'Diagnóstico diferencial en cardiología geriátrica',
+          required: true,
+          type: 'text'
+        }
+      ],
+      outputInsights: [
+        {
+          name: 'Escenarios simulados',
+          description: 'Casos clínicos adaptados para entrenamiento',
+          businessValue: 'Proporciona entrenamiento realista sin riesgos para pacientes',
+          visualizationType: 'table'
+        },
+        {
+          name: 'Métricas de progresión',
+          description: 'Indicadores de mejora en competencias',
+          businessValue: 'Permite validar la eficacia del entrenamiento antes de aplicación clínica',
+          visualizationType: 'radar'
+        }
+      ],
+      estimatedProcessingTime: '60-90 minutos',
+      difficulty: 'avanzado'
+    }
+  ],
+  totalEstimatedTime: '2.5-3.5 horas',
+  recommendedTools: ['Plataforma LMS médico', 'Simuladores clínicos', 'Learning Analytics']
+};
+
+const crossRetailManufactura: AnalysisFlow = {
+  id: 'cross-retail-manufactura',
+  name: 'Cadena de suministro integrada orientada al consumidor',
+  description: 'Secuencia que optimiza la producción y distribución desde la fábrica al consumidor final',
+  industry: 'retail',
+  businessGoal: 'Reducir costos operativos mientras se mejora la satisfacción del cliente',
+  steps: [
+    {
+      id: 'step1-consumer-demand-analysis',
+      name: 'Análisis de demanda del consumidor',
+      description: 'Identifica patrones de demanda y preferencias de consumo',
+      modelType: 'timeSeries',
+      prerequisiteSteps: [],
+      inputFields: [
+        {
+          name: 'Datos de ventas',
+          description: 'Histórico detallado de transacciones',
+          example: 'Tabla con Fecha, Producto, Cantidad, Lugar, Precio',
+          required: true,
+          type: 'numeric'
+        },
+        {
+          name: 'Características de productos',
+          description: 'Atributos y categorías de productos',
+          example: 'Tabla con ID_Producto, Categoría, Atributos, Origen',
+          required: true,
+          type: 'categorical'
+        },
+        {
+          name: 'Factores externos',
+          description: 'Variables externas que afectan la demanda',
+          example: 'Tabla con Fecha, Evento, Impacto_Estimado',
+          required: false,
+          type: 'categorical'
+        }
+      ],
+      outputInsights: [
+        {
+          name: 'Patrones de demanda',
+          description: 'Estacionalidad y tendencias por producto y ubicación',
+          businessValue: 'Permite anticipar cambios en la demanda para producción y distribución',
+          visualizationType: 'line'
+        },
+        {
+          name: 'Elasticidad de precio',
+          description: 'Sensibilidad de demanda a cambios de precio',
+          businessValue: 'Ayuda a optimizar estrategias de precio y producción',
+          visualizationType: 'scatter'
+        }
+      ],
+      estimatedProcessingTime: '30-45 minutos',
+      difficulty: 'intermedio'
+    },
+    {
+      id: 'step2-manufacturing-optimization',
+      name: 'Optimización de ciclos de producción',
+      description: 'Ajusta la producción según la demanda prevista',
+      modelType: 'optimization',
+      prerequisiteSteps: ['step1-consumer-demand-analysis'],
+      inputFields: [
+        {
+          name: 'Previsión de demanda',
+          description: 'Resultados del análisis anterior',
+          example: 'Producto A: 10,000 unidades esperadas en abril',
+          required: true,
+          type: 'numeric'
+        },
+        {
+          name: 'Capacidad de producción',
+          description: 'Límites y recursos disponibles',
+          example: 'Línea 1: 500 uds/hora, Línea 2: 750 uds/hora',
+          required: true,
+          type: 'numeric'
+        },
+        {
+          name: 'Costos operativos',
+          description: 'Estructura de costos por línea y producto',
+          example: 'Tabla con Producto, Línea, Costo_Unitario, Tiempo_Configuración',
+          required: true,
+          type: 'numeric'
+        }
+      ],
+      outputInsights: [
+        {
+          name: 'Plan de producción',
+          description: 'Calendario optimizado de producción por línea',
+          businessValue: 'Minimiza costos mientras asegura disponibilidad de productos',
+          visualizationType: 'table'
+        },
+        {
+          name: 'Puntos críticos',
+          description: 'Cuellos de botella y restricciones identificadas',
+          businessValue: 'Identifica áreas para mejora de capacidad o flexibilidad',
+          visualizationType: 'bar'
+        }
+      ],
+      estimatedProcessingTime: '45-60 minutos',
+      difficulty: 'avanzado'
+    },
+    {
+      id: 'step3-inventory-distribution-optimization',
+      name: 'Optimización de inventario y distribución',
+      description: 'Determina niveles óptimos de inventario y rutas de distribución',
+      modelType: 'network',
+      prerequisiteSteps: ['step2-manufacturing-optimization'],
+      inputFields: [
+        {
+          name: 'Plan de producción',
+          description: 'Resultados del análisis anterior',
+          example: 'Tabla con Producto, Fecha_Producción, Cantidad',
+          required: true,
+          type: 'numeric'
+        },
+        {
+          name: 'Red logística',
+          description: 'Centros de distribución y tiendas',
+          example: 'Tabla con Origen, Destino, Distancia, Capacidad, Costo',
+          required: true,
+          type: 'categorical'
+        },
+        {
+          name: 'Restricciones de inventario',
+          description: 'Limitaciones de espacio y requerimientos',
+          example: 'Tabla con Ubicación, Capacidad_Máxima, Stock_Seguridad',
+          required: true,
+          type: 'numeric'
+        }
+      ],
+      outputInsights: [
+        {
+          name: 'Política de inventario',
+          description: 'Niveles óptimos por ubicación y producto',
+          businessValue: 'Reduce costos de mantenimiento de inventario y evita roturas de stock',
+          visualizationType: 'heatmap'
+        },
+        {
+          name: 'Plan de distribución',
+          description: 'Rutas y frecuencias óptimas de transporte',
+          businessValue: 'Minimiza costos logísticos mientras mantiene niveles de servicio',
+          visualizationType: 'table'
+        }
+      ],
+      estimatedProcessingTime: '50-75 minutos',
+      difficulty: 'avanzado'
+    }
+  ],
+  totalEstimatedTime: '2.5-3 horas',
+  recommendedTools: ['Power BI', 'Python con librerías de optimización', 'GIS para rutas']
+};
+
+// Update the getAnalysisFlowsByIndustry function to include cross-industry flows
+// Add these cross-industry flows to the appropriate arrays
+
+// Update the existing arrays with our new cross-industry flows
+const allFlows: Record<string, AnalysisFlow[]> = {
+  finanzas: [finanzasCreditRiskFlow, finanzasFraudeDetectionFlow, crossIndustryFinanzasTech],
+  retail: [retailCustomerLifetimeValueFlow, crossRetailManufactura],
+  educacion: [educacionAprendizajeFlow, crossHealthEducation],
+  salud: [saludPredictiveFlow, crossHealthEducation],
+  manufactura: [manufacturaMantenimientoPredictivo, crossRetailManufactura],
+  tecnologia: [tecnologiaEngagementFlow, crossIndustryFinanzasTech]
+};
+
+// Update the getAnalysisFlowsByIndustry function to include cross-industry flows
+export const getAnalysisFlowsByIndustry = (industry: string): AnalysisFlow[] => {
+  const industrySpecificFlows: Record<string, AnalysisFlow[]> = {
+    finanzas: [finanzasCreditRiskFlow, finanzasFraudeDetectionFlow, crossIndustryFinanzasTech],
+    retail: [retailCustomerLifetimeValueFlow, crossRetailManufactura],
+    educacion: [educacionAprendizajeFlow, crossHealthEducation],
+    salud: [saludPredictiveFlow, crossHealthEducation],
+    manufactura: [manufacturaMantenimientoPredictivo, crossRetailManufactura],
+    tecnologia: [tecnologiaEngagementFlow, crossIndustryFinanzasTech]
+  };
+
+  return industrySpecificFlows[industry] || [];
+};
+
+// Update getAnalysisFlowById with our new flows
 export const getAnalysisFlowById = (flowId: string): AnalysisFlow | null => {
-  const allFlows = [
-    finanzasCreditRiskFlow, 
-    finanzasFraudeDetectionFlow,
-    retailCustomerLifetimeValueFlow,
-    educacionAprendizajeFlow,
-    saludPredictiveFlow,
-    manufacturaMantenimientoPredictivo,
-    tecnologiaEngagementFlow
-  ];
-  
   return allFlows.find(flow => flow.id === flowId) || null;
 };
 

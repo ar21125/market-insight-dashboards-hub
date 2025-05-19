@@ -6,8 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowRight, Clock, FileSearch, Activity, Download } from 'lucide-react';
-import { getAnalysisFlowsByIndustry, AnalysisFlow } from '@/services/analysisFlowService';
+import { getAnalysisFlowsByIndustry, AnalysisFlow, getAnalysisFlowById } from '@/services/analysisFlowService';
 import { toast } from 'sonner';
+import { generateExcelTemplate, createTemplateSectionsFromFlow } from '@/utils/excelTemplateGenerator';
 
 interface AnalysisFlowsProps {
   industry: string;
@@ -18,18 +19,38 @@ export const AnalysisFlows: React.FC<AnalysisFlowsProps> = ({ industry }) => {
   const flows = getAnalysisFlowsByIndustry(industry);
 
   const handleDownloadTemplate = (flowId: string) => {
-    toast.success('Descargando plantilla de análisis', {
-      description: 'Se está preparando la plantilla con todos los campos necesarios para este flujo de análisis.',
-      duration: 3000,
-    });
-    
-    // In a real app, this would trigger an actual download
-    setTimeout(() => {
+    try {
+      // Get the complete flow data
+      const flow = getAnalysisFlowById(flowId);
+      
+      if (!flow) {
+        toast.error('No se pudo encontrar el flujo de análisis');
+        return;
+      }
+      
+      // Show toast indicating download is starting
+      toast.success('Descargando plantilla de análisis', {
+        description: 'Se está preparando la plantilla con todos los campos necesarios para este flujo de análisis.',
+        duration: 3000,
+      });
+      
+      // Generate template sections from the flow
+      const templateSections = createTemplateSectionsFromFlow(flow);
+      
+      // Generate and download the Excel template
+      generateExcelTemplate(flowId, flow.name, templateSections);
+      
+      // Show completion toast
       toast.info('Plantilla descargada', {
         description: 'Recuerde completar todos los campos requeridos antes de subir el archivo.',
         duration: 4000,
       });
-    }, 1500);
+    } catch (error) {
+      console.error('Error downloading template:', error);
+      toast.error('Error al generar la plantilla', {
+        description: 'No se pudo generar la plantilla. Por favor intente nuevamente.',
+      });
+    }
   };
 
   if (flows.length === 0) {
