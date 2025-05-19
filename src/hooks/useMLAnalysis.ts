@@ -1,58 +1,39 @@
-import { useState } from 'react';
-import { mlService, AnalysisRequest, AnalysisResponse } from '@/services/mlService';
-import { useQuery, useMutation } from '@tanstack/react-query';
 
-export function useMLAnalysis() {
-  const [currentAnalysisId, setCurrentAnalysisId] = useState<string | null>(null);
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { mlService } from "@/services/mlService";
 
-  // Upload file for analysis
-  const uploadMutation = useMutation({
+export const useMLAnalysis = (fileId: string | null) => {
+  const queryClient = useQueryClient();
+
+  const uploadFileMutation = useMutation({
     mutationFn: mlService.uploadForAnalysis,
-    onSuccess: (data: AnalysisResponse) => {
-      setCurrentAnalysisId(data.id);
-    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['analysisResults', data.id] });
+    }
   });
 
-  // Get analysis results
-  const analysisResults = useQuery({
-    queryKey: ['analysis', currentAnalysisId],
-    queryFn: () => mlService.getAnalysisResults(currentAnalysisId as string),
-    enabled: !!currentAnalysisId,
+  const analysisResultsQuery = useQuery({
+    queryKey: ['analysisResults', fileId],
+    queryFn: () => mlService.getAnalysisResults(fileId!),
+    enabled: !!fileId,
     refetchInterval: (data) => {
-      // If status is 'completed' or 'failed', stop polling
-      if (data?.status === 'completed' || data?.status === 'failed') {
-        return false;
+      // Check if analysis is still processing
+      if (data?.status === 'processing') {
+        return 5000; // Poll every 5 seconds
       }
-      // Otherwise, poll every 5 seconds
-      return 5000;
+      return false; // Stop polling once complete or failed
     },
   });
 
-  // Download results
-  const downloadMutation = useMutation({
-    mutationFn: mlService.downloadResults,
+  const downloadResultsMutation = useMutation({
+    mutationFn: mlService.downloadResults
   });
-
-  // Get available models for an industry
-  const getModels = (industry: string) => {
-    return useQuery({
-      queryKey: ['models', industry],
-      queryFn: () => mlService.getAvailableModels(industry),
-    });
-  };
 
   return {
-    uploadForAnalysis: uploadMutation.mutate,
-    isUploading: uploadMutation.isPending,
-    uploadError: uploadMutation.error,
-    
-    analysisResults: analysisResults.data,
-    isLoadingResults: analysisResults.isLoading,
-    
-    downloadResults: downloadMutation.mutate,
-    isDownloading: downloadMutation.isPending,
-    
-    getModels,
-    setCurrentAnalysisId,
+    uploadFile: uploadFileMutation,
+    analysisResults: analysisResultsQuery,
+    downloadResults: downloadResultsMutation,
   };
-}
+};
+
+export default useMLAnalysis;
