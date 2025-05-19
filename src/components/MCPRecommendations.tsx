@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Check, ArrowRight } from "lucide-react";
 
 export interface MCPRecommendationsProps {
-  modelType: string; // Change from modelTypes array to a single modelType
+  modelType: string; // Single model type
   // Add any other props needed
 }
 

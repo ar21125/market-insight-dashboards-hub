@@ -1,327 +1,360 @@
-
-import React, { useState, useEffect, useRef } from 'react';
-import { SimpleBarChart, GroupedBarChart, SimpleLineChart, MultiLineChart, SimplePieChart, SimpleAreaChart, SimpleScatterChart, SimpleRadarChart, MultiRadarChart, BoxPlot, HeatMap } from './ChartComponents';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ArrowRight, BarChart, Download, Info, LineChart, PieChart, ScatterChart, ArrowUpRight as ArrowUpRightIcon } from 'lucide-react';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
-import { MCPRecommendations } from './MCPRecommendations';
-import { methodologyService } from '@/services/methodologyService';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowRight, FileSearch, Activity, Download, CheckCircle } from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from "@/components/ui/button";
+import { API_URL } from '@/config';
+import { MCPRecommendations } from '@/components/MCPRecommendations';
+
+interface AnalysisStep {
+  id: string;
+  name: string;
+  description: string;
+  modelType: string;
+  prerequisiteSteps: string[];
+  inputFields: { name: string; description: string; example: string; required: boolean; type: string }[];
+  outputInsights: { name: string; description: string; businessValue: string; visualizationType: string }[];
+  estimatedProcessingTime: string;
+  difficulty: string;
+}
+
+interface MethodologyFlow {
+  id: string;
+  name: string;
+  description: string;
+  industry: string;
+  businessGoal: string;
+  steps: AnalysisStep[];
+  totalEstimatedTime: string;
+  recommendedTools: string[];
+}
+
+// Mock function to simulate fetching methodology by type
+const getMethodologyByType = (modelType: string): MethodologyFlow => {
+  // Replace this with actual data fetching logic
+  return {
+    id: 'mock-methodology',
+    name: 'Metodología de ejemplo',
+    description: 'Esta es una metodología de ejemplo para el tipo de modelo ' + modelType,
+    industry: 'varios',
+    businessGoal: 'Demostrar una metodología completa',
+    steps: [
+      {
+        id: 'step1',
+        name: 'Preparación de datos',
+        description: 'Recopila y prepara los datos necesarios',
+        modelType: 'dataPreparation',
+        prerequisiteSteps: [],
+        inputFields: [
+          { name: 'Datos crudos', description: 'Datos sin procesar', example: 'CSV, JSON', required: true, type: 'file' }
+        ],
+        outputInsights: [
+          { name: 'Datos limpios', description: 'Datos listos para análisis', businessValue: 'Mejora la precisión', visualizationType: 'table' }
+        ],
+        estimatedProcessingTime: '10 minutos',
+        difficulty: 'básico'
+      },
+      {
+        id: 'step2',
+        name: 'Análisis del modelo',
+        description: 'Aplica el modelo ' + modelType + ' a los datos',
+        modelType: modelType,
+        prerequisiteSteps: ['step1'],
+        inputFields: [
+          { name: 'Datos preparados', description: 'Datos del paso anterior', example: 'Tabla de datos', required: true, type: 'table' }
+        ],
+        outputInsights: [
+          { name: 'Resultados del modelo', description: 'Predicciones y insights', businessValue: 'Información clave', visualizationType: 'chart' }
+        ],
+        estimatedProcessingTime: '20 minutos',
+        difficulty: 'intermedio'
+      }
+    ],
+    totalEstimatedTime: '30 minutos',
+    recommendedTools: ['Python', 'R']
+  };
+};
 
 interface AnalysisResultsProps {
-  analysisResult: any;
-  metrics: any;
-  loading: boolean;
+  fileId: string;
   modelType: string;
-  industry: string;
 }
 
-interface Visualization {
-  type: string;
-  title: string;
-  description: string;
-}
-
-interface ActionRecommendation {
-  type: string;
-  title: string;
-  description: string;
-  priority: string;
-}
-
-interface ImportantVariable {
-  name: string;
-  importance: number;
-}
-
-const renderChart = (type: string, data: any[], id: string) => {
-  switch (type) {
-    case 'bar':
-      return <SimpleBarChart data={data} id={id} />;
-    case 'groupedBar':
-      return <GroupedBarChart data={data} id={id} />;
-    case 'line':
-      return <SimpleLineChart data={data} id={id} />;
-    case 'multiLine':
-      return <MultiLineChart data={data} id={id} />;
-    case 'pie':
-      return <SimplePieChart data={data} id={id} />;
-    case 'area':
-      return <SimpleAreaChart data={data} id={id} />;
-    case 'scatter':
-      return <SimpleScatterChart data={data} id={id} />;
-    case 'radar':
-      return <SimpleRadarChart data={data} id={id} />;
-    case 'multiRadar':
-      return <MultiRadarChart data={data} id={id} />;
-    case 'boxplot':
-      return <BoxPlot data={data} id={id} />;
-    case 'heatmap':
-      return <HeatMap data={data} id={id} />;
-    default:
-      return <Alert variant="destructive">
-        <AlertTitle>Error</AlertTitle>
-        <AlertDescription>
-          Unsupported chart type: {type}
-        </AlertDescription>
-      </Alert>;
-  }
-};
-
-const exportChartAsPDF = async (chartId: string, chartTitle: string) => {
-  const element = document.getElementById(chartId);
-  if (!element) {
-    console.error(`Element with id ${chartId} not found`);
-    return;
-  }
-
-  try {
-    const canvas = await html2canvas(element, { scale: 2 });
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-    const margin = 10;
-
-    pdf.addImage(imgData, 'PNG', margin, margin, pdfWidth - 2 * margin, pdfHeight - 2 * margin);
-    pdf.save(`${chartTitle}.pdf`);
-  } catch (error) {
-    console.error('Error exporting chart to PDF:', error);
-  }
-};
-
-export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ 
-  analysisResult, 
-  metrics, 
-  loading, 
-  modelType,
-  industry
-}) => {
-  const [activeTab, setActiveTab] = useState("results");
-  const [showAllRecommendations, setShowAllRecommendations] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ fileId, modelType }) => {
+  const [results, setResults] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedTab, setSelectedTab] = useState<string>('resultados');
 
   useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.scrollTop = 0;
-    }
-  }, [activeTab]);
+    const fetchResults = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch(`${API_URL}/api/files/${fileId}/results`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setResults(data);
+      } catch (e: any) {
+        setError(`Error fetching results: ${e.message}`);
+        toast.error(`Error al obtener resultados: ${e.message}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResults();
+  }, [fileId]);
+
+  const handleDownloadResults = () => {
+    toast.success('Descargando resultados', {
+      description: 'Se está preparando el archivo con los resultados del análisis.',
+      duration: 3000,
+    });
+    
+    // In a real app, this would trigger an actual download
+    setTimeout(() => {
+      toast.info('Resultados descargados', {
+        description: 'Puede abrir el archivo con su herramienta de análisis preferida.',
+        duration: 4000,
+      });
+    }, 1500);
+  };
 
   if (loading) {
-    return <p>Cargando resultados...</p>;
+    return <Card className="bg-muted/50"><CardContent className="pt-6 text-center">Cargando resultados...</CardContent></Card>;
   }
 
-  if (!analysisResult) {
-    return <p>No hay resultados para mostrar.</p>;
+  if (error) {
+    return <Card className="bg-muted/50"><CardContent className="pt-6 text-center text-red-500">Error: {error}</CardContent></Card>;
   }
 
-  const visualizations: Visualization[] = analysisResult.visualizations || [];
-  const actionRecommendations: ActionRecommendation[] = analysisResult.action_recommendations || [];
-  const importantVariables: ImportantVariable[] = analysisResult.important_variables || [];
-  const complementaryAnalyses: string[] = analysisResult.complementary_analyses || [];
+  if (!results) {
+    return <Card className="bg-muted/50"><CardContent className="pt-6 text-center">No hay resultados disponibles.</CardContent></Card>;
+  }
 
-  const toggleRecommendations = () => {
-    setShowAllRecommendations(!showAllRecommendations);
-  };
+  const methodology = getMethodologyByType(modelType);
 
-  const displayedRecommendations = showAllRecommendations
-    ? actionRecommendations
-    : actionRecommendations.slice(0, 3);
-
-  const renderVisualization = (visualization: Visualization, index: number) => {
-    const chartId = `chart-${modelType}-${index}`;
-    return (
-      <Card key={index} className="overflow-hidden">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{visualization.title}</CardTitle>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <Download className="h-4 w-4 cursor-pointer text-muted-foreground hover:text-foreground" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Descargar como PDF</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <Download className="h-4 w-4 cursor-pointer text-muted-foreground hover:text-foreground" onClick={() => exportChartAsPDF(chartId, visualization.title)} />
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <CardTitle>Resultados del análisis</CardTitle>
+              <CardDescription className="mt-1">
+                Visualice los resultados y descubra insights clave generados por el modelo.
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button 
+                size="sm" 
+                onClick={handleDownloadResults}
+                className="flex items-center gap-1"
+              >
+                <Download className="h-4 w-4" />
+                Descargar resultados
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          {renderChart(visualization.type, analysisResult[visualization.type + 'Data'], chartId)}
-        </CardContent>
-        <CardFooter className="text-xs text-muted-foreground">
-          {visualization.description}
-        </CardFooter>
-      </Card>
-    );
-  };
+          <Tabs defaultValue="resultados" className="space-y-4" onValueChange={setSelectedTab}>
+            <TabsList>
+              <TabsTrigger value="resultados">Resultados</TabsTrigger>
+              {methodology.steps && methodology.steps.length > 0 ? (
+                <TabsTrigger value="metodologia">Metodología</TabsTrigger>
+              ) : null}
+              <TabsTrigger value="complementario">Análisis complementarios</TabsTrigger>
+              <TabsTrigger value="implementacion">Implementación</TabsTrigger>
+            </TabsList>
 
-  const renderMethodologyContent = () => {
-    const methodologyData = methodologyService.getMethodologyForModel(modelType, industry);
-    
-    if (!methodologyData || methodologyData.length === 0) {
-      return (
-        <div className="text-center py-10">
-          <p className="text-muted-foreground">No se encontró metodología para este tipo de análisis</p>
-        </div>
-      );
-    }
-
-    return (
-      <div className="space-y-8">
-        <div className="grid gap-6">
-          {methodologyData.map((block, blockIndex) => (
-            <Card key={blockIndex} className="overflow-hidden">
-              <CardHeader className="bg-muted/50">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg font-medium">{block.name}</CardTitle>
-                  <Badge variant={block.recommended ? "default" : "outline"}>
-                    {block.recommended ? "Recomendado" : "Opcional"}
-                  </Badge>
-                </div>
-                <CardDescription>{block.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <div className="space-y-4">
+            <TabsContent value="resultados" className="space-y-4">
+              <div className="space-y-4">
+                <div className="bg-muted/50 p-4 rounded-lg flex items-center gap-3">
+                  <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
                   <div>
-                    <h4 className="text-sm font-medium mb-2 flex items-center">
-                      <Info className="h-4 w-4 mr-1 text-muted-foreground" /> 
-                      ¿Qué necesito para comenzar?
-                    </h4>
-                    <div className="bg-muted p-4 rounded-md">
-                      <ul className="list-disc list-inside space-y-2 text-sm">
-                        {block.inputs.map((input, i) => (
-                          <li key={i} className="text-muted-foreground">
-                            <span className="font-medium text-foreground">{input.name}</span>: {input.description}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    <h4 className="font-medium">Modelo utilizado</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Se utilizó el modelo <strong>{modelType}</strong> para generar estos resultados.
+                    </p>
                   </div>
+                </div>
+
+                <div className="mt-6">
+                  <h4 className="font-medium mb-3 flex items-center gap-1">
+                    <FileSearch className="h-4 w-4 text-primary" />
+                    Insights principales
+                  </h4>
                   
-                  <div>
-                    <h4 className="text-sm font-medium mb-2 flex items-center">
-                      <BarChart className="h-4 w-4 mr-1 text-muted-foreground" /> 
-                      Visualizaciones Recomendadas
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {block.visualizations.map((viz, i) => (
-                        <div key={i} className="flex items-center space-x-2 bg-muted/50 p-2 rounded-md">
-                          {viz.type === 'bar' && <BarChart className="h-4 w-4 text-primary" />}
-                          {viz.type === 'line' && <LineChart className="h-4 w-4 text-primary" />}
-                          {viz.type === 'pie' && <PieChart className="h-4 w-4 text-primary" />}
-                          {viz.type === 'scatter' && <ScatterChart className="h-4 w-4 text-primary" />}
-                          <span className="text-sm">{viz.name} - {viz.description}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <Accordion type="single" collapsible className="w-full">
+                    {methodology.steps && methodology.steps.map((step, index) => (
+                      <AccordionItem key={step.id} value={step.id}>
+                        <AccordionTrigger className="hover:bg-muted/50 px-3 rounded-md">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="h-6 w-6 rounded-full flex items-center justify-center p-0">
+                              {index + 1}
+                            </Badge>
+                            <span>{step.name}</span>
+                            <Badge className="ml-auto" variant={
+                              step.difficulty === 'básico' ? 'outline' : 
+                              step.difficulty === 'intermedio' ? 'secondary' : 
+                              'default'
+                            }>
+                              {step.difficulty}
+                            </Badge>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="px-3">
+                          <div className="space-y-4">
+                            <p className="text-sm">{step.description}</p>
+                            
+                            {/* Outputs */}
+                            <div className="bg-muted/30 p-3 rounded-md">
+                              <h5 className="text-sm font-medium mb-2">Resultados obtenidos:</h5>
+                              <ul className="space-y-3">
+                                {step.outputInsights.map((insight, i) => (
+                                  <li key={i} className="text-sm">
+                                    <div className="flex items-center gap-1">
+                                      <ArrowRight className="h-3 w-3 text-primary" />
+                                      <span className="font-medium">{insight.name}</span>
+                                      <Badge variant="outline" className="ml-auto">
+                                        {insight.visualizationType}
+                                      </Badge>
+                                    </div>
+                                    <p className="text-muted-foreground text-xs ml-4">{insight.description}</p>
+                                    <p className="text-primary text-xs ml-4 mt-1">Valor de negocio: {insight.businessValue}</p>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                            
+                            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                              <span>Tiempo estimado: {step.estimatedProcessingTime}</span>
+                              <span>Modelo: {step.modelType}</span>
+                            </div>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </div>
+              </div>
+            </TabsContent>
 
+            <TabsContent value="metodologia">
+              <div className="space-y-4">
+                <div className="bg-muted/50 p-4 rounded-lg flex items-center gap-3">
+                  <Activity className="h-5 w-5 text-primary flex-shrink-0" />
                   <div>
-                    <h4 className="text-sm font-medium mb-2 flex items-center">
-                      <ArrowRight className="h-4 w-4 mr-1 text-muted-foreground" /> 
-                      Resultados que obtendrá
-                    </h4>
-                    <div className="bg-muted p-4 rounded-md">
-                      <ul className="list-disc list-inside space-y-2 text-sm">
-                        {block.outputs.map((output, i) => (
-                          <li key={i} className="text-muted-foreground">
-                            <span className="font-medium text-foreground">{output.name}</span>: {output.description}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    <h4 className="font-medium">Metodología utilizada</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Se siguió la metodología <strong>{methodology.name}</strong> para el análisis.
+                    </p>
                   </div>
                 </div>
-              </CardContent>
-              <CardFooter className="bg-muted/30 flex justify-between">
-                <div className="text-sm text-muted-foreground">
-                  Tiempo estimado: {block.estimatedTime}
+                
+                <div className="mt-6">
+                  <h4 className="font-medium mb-3 flex items-center gap-1">
+                    <FileSearch className="h-4 w-4 text-primary" />
+                    Pasos de la metodología
+                  </h4>
+                  
+                  <Accordion type="single" collapsible className="w-full">
+                    {methodology.steps.map((step, index) => (
+                      <AccordionItem key={step.id} value={step.id}>
+                        <AccordionTrigger className="hover:bg-muted/50 px-3 rounded-md">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="h-6 w-6 rounded-full flex items-center justify-center p-0">
+                              {index + 1}
+                            </Badge>
+                            <span>{step.name}</span>
+                            <Badge className="ml-auto" variant={
+                              step.difficulty === 'básico' ? 'outline' : 
+                              step.difficulty === 'intermedio' ? 'secondary' : 
+                              'default'
+                            }>
+                              {step.difficulty}
+                            </Badge>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="px-3">
+                          <div className="space-y-4">
+                            <p className="text-sm">{step.description}</p>
+                            
+                            {/* Inputs needed */}
+                            <div className="bg-muted/30 p-3 rounded-md">
+                              <h5 className="text-sm font-medium mb-2">Datos necesarios:</h5>
+                              <ul className="space-y-2">
+                                {step.inputFields.map((field, i) => (
+                                  <li key={i} className="text-sm flex items-start gap-2">
+                                    <Badge variant={field.required ? "default" : "outline"} className="mt-0.5">
+                                      {field.required ? "Requerido" : "Opcional"}
+                                    </Badge>
+                                    <div>
+                                      <span className="font-medium">{field.name}</span>
+                                      <p className="text-muted-foreground text-xs">{field.description}</p>
+                                      <p className="text-xs italic mt-0.5">Ejemplo: {field.example}</p>
+                                    </div>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                            
+                            {/* Outputs */}
+                            <div className="bg-muted/30 p-3 rounded-md">
+                              <h5 className="text-sm font-medium mb-2">Resultados obtenidos:</h5>
+                              <ul className="space-y-3">
+                                {step.outputInsights.map((insight, i) => (
+                                  <li key={i} className="text-sm">
+                                    <div className="flex items-center gap-1">
+                                      <ArrowRight className="h-3 w-3 text-primary" />
+                                      <span className="font-medium">{insight.name}</span>
+                                      <Badge variant="outline" className="ml-auto">
+                                        {insight.visualizationType}
+                                      </Badge>
+                                    </div>
+                                    <p className="text-muted-foreground text-xs ml-4">{insight.description}</p>
+                                    <p className="text-primary text-xs ml-4 mt-1">Valor de negocio: {insight.businessValue}</p>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                            
+                            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                              <span>Tiempo estimado: {step.estimatedProcessingTime}</span>
+                              <span>Modelo: {step.modelType}</span>
+                            </div>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
                 </div>
-                <Button variant="outline" size="sm" className="gap-1">
-                  Ver más detalles
-                  <ArrowUpRightIcon className="h-3 w-3" />
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  };
-  
-  return (
-    <ScrollArea ref={containerRef} className="h-[650px] w-full">
-      <div className="p-4 space-y-4">
-        <Tabs defaultValue="results" className="w-full" onValueChange={setActiveTab}>
-          <TabsList>
-            <TabsTrigger value="results">Resultados</TabsTrigger>
-            <TabsTrigger value="recommendations">Recomendaciones</TabsTrigger>
-            <TabsTrigger value="variables">Variables Importantes</TabsTrigger>
-             {/* Conditionally render the methodology tab */}
-             {methodologyService.hasMethodologyForModel(modelType, industry) && (
-              <TabsTrigger value="methodology">Metodología</TabsTrigger>
-            )}
-            {complementaryAnalyses.length > 0 && (
-              <TabsTrigger value="complementary">Análisis Complementarios</TabsTrigger>
-            )}
-          </TabsList>
-          <TabsContent value="results" className="space-y-4 pt-4">
-            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-              {visualizations.map((visualization, index) => (
-                renderVisualization(visualization, index)
-              ))}
-            </div>
-          </TabsContent>
-          <TabsContent value="recommendations" className="space-y-4 pt-4">
-            <div className="space-y-2">
-              {displayedRecommendations.map((recommendation, index) => (
-                <Alert key={index} variant="default">
-                  <AlertTitle>{recommendation.title}</AlertTitle>
-                  <AlertDescription>{recommendation.description}</AlertDescription>
-                </Alert>
-              ))}
-              {actionRecommendations.length > 3 && (
-                <Button variant="link" onClick={toggleRecommendations}>
-                  {showAllRecommendations ? "Ver menos" : `Ver todas (${actionRecommendations.length})`}
-                </Button>
-              )}
-            </div>
-          </TabsContent>
-          <TabsContent value="variables" className="space-y-4 pt-4">
-            {importantVariables.length > 0 ? (
-              <div className="space-y-2">
-                {importantVariables.map((variable, index) => (
-                  <Card key={index}>
-                    <CardHeader>
-                      <CardTitle>{variable.name}</CardTitle>
-                      <CardDescription>Importancia: {variable.importance.toFixed(2)}</CardDescription>
-                    </CardHeader>
-                  </Card>
-                ))}
               </div>
-            ) : (
-              <div className="text-center py-4">
-                <p className="text-muted-foreground">No hay variables importantes para mostrar.</p>
-              </div>
-            )}
-          </TabsContent>
-          <TabsContent value="methodology" className="space-y-4 pt-4">
-            {renderMethodologyContent()}
-          </TabsContent>
-          <TabsContent value="complementary" className="space-y-4 pt-4">
-            <MCPRecommendations modelTypes={complementaryAnalyses} />
-          </TabsContent>
-        </Tabs>
-      </div>
-    </ScrollArea>
+            </TabsContent>
+
+            <TabsContent value="complementario">
+              <Card className="bg-muted/50">
+                <CardContent className="pt-6 text-center">
+                  <p className="text-muted-foreground">
+                    No hay análisis complementarios disponibles para este modelo.
+                  </p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="implementacion">
+              <MCPRecommendations modelType={modelType} />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
   );
-}
+};
