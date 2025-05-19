@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BarChart, PieChart, AreaChart, ArrowLeft, Download } from "lucide-react";
@@ -127,17 +127,35 @@ const Dashboard = () => {
     fetchData();
   }, [industry]);
 
-  const handleDownloadTemplate = () => {
+  const handleDownloadTemplate = (templateType = 'general') => {
     if (!industry) return;
     
-    const templateName = getExcelTemplate(industry);
+    const templateName = getExcelTemplate(industry, templateType);
     
-    // En un entorno real, aquí se generaría una descarga real
-    // Para este demo, solo mostramos una notificación
-    toast.success(`Plantilla "${templateName}" lista para descargar`, {
-      description: "En una implementación real, esto iniciaría la descarga del archivo Excel",
-      duration: 5000,
-    });
+    // Simulación de descarga real con Blob
+    setTimeout(() => {
+      // En una implementación real, aquí recibiríamos datos reales desde la API
+      const fakeData = "Datos de ejemplo para la plantilla " + industry + "_" + templateType;
+      const blob = new Blob([fakeData], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      
+      // Crear un elemento de enlace invisible para la descarga
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = templateName;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Limpiar después de la descarga
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast.success(`Descargando plantilla "${templateName}"`, {
+        description: "La plantilla se ha descargado correctamente",
+        duration: 5000,
+      });
+    }, 500);
   };
 
   return (
@@ -156,7 +174,7 @@ const Dashboard = () => {
                 Volver a industrias
               </Link>
             </Button>
-            <Button size="sm" onClick={handleDownloadTemplate} className="flex items-center gap-2">
+            <Button size="sm" onClick={() => handleDownloadTemplate()} className="flex items-center gap-2">
               <Download className="h-4 w-4" />
               Descargar plantilla Excel
             </Button>
@@ -381,68 +399,163 @@ const Dashboard = () => {
                     <MlModelInfo industry={industry || "retail"} />
                     <div className="bg-blue-50 p-6 border border-blue-200 rounded-lg">
                       <h3 className="text-lg font-medium text-blue-800 mb-4">Plantillas de Excel para análisis avanzado</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <Card>
-                          <CardContent className="pt-6">
-                            <h4 className="font-medium mb-2">Plantilla SARIMA</h4>
-                            <p className="text-sm text-muted-foreground mb-4">
-                              Para análisis de series temporales con componentes estacionales.
-                            </p>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="w-full" 
-                              onClick={() => {
-                                toast.success(`Descargando plantilla SARIMA para ${industryName}`, {
-                                  description: "Incluye columnas para datos históricos, factores estacionales y variables externas."
-                                });
-                              }}
-                            >
-                              <Download className="h-4 w-4 mr-2" />
-                              Descargar SARIMA
-                            </Button>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-lg">Análisis Predictivo</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                              <h4 className="font-medium">SARIMA</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Series temporales estacionales con componentes autorregresivos.
+                              </p>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="w-full" 
+                                onClick={() => handleDownloadTemplate('sarima')}
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Descargar SARIMA
+                              </Button>
+                            </div>
+                            <div className="space-y-2">
+                              <h4 className="font-medium">ARIMA</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Series temporales no estacionales para predicciones a corto plazo.
+                              </p>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="w-full" 
+                                onClick={() => handleDownloadTemplate('arima')}
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Descargar ARIMA
+                              </Button>
+                            </div>
+                            <div className="space-y-2">
+                              <h4 className="font-medium">Prophet</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Pronósticos robustos con múltiples patrones estacionales.
+                              </p>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="w-full" 
+                                onClick={() => handleDownloadTemplate('prophet')}
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Descargar Prophet
+                              </Button>
+                            </div>
                           </CardContent>
                         </Card>
+                        
                         <Card>
-                          <CardContent className="pt-6">
-                            <h4 className="font-medium mb-2">Plantilla Prophet</h4>
-                            <p className="text-sm text-muted-foreground mb-4">
-                              Para pronósticos avanzados con múltiples factores estacionales.
-                            </p>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="w-full" 
-                              onClick={() => {
-                                toast.success(`Descargando plantilla Prophet para ${industryName}`, {
-                                  description: "Incluye columnas para fechas, valores, eventos y factores externos."
-                                });
-                              }}
-                            >
-                              <Download className="h-4 w-4 mr-2" />
-                              Descargar Prophet
-                            </Button>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-lg">Clasificación y Agrupación</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                              <h4 className="font-medium">K-means</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Segmentación de datos en grupos con características similares.
+                              </p>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="w-full" 
+                                onClick={() => handleDownloadTemplate('kmeans')}
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Descargar K-means
+                              </Button>
+                            </div>
+                            <div className="space-y-2">
+                              <h4 className="font-medium">Random Forest</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Árboles de decisión para clasificación y regresión.
+                              </p>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="w-full" 
+                                onClick={() => handleDownloadTemplate('randomForest')}
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Descargar Random Forest
+                              </Button>
+                            </div>
+                            <div className="space-y-2">
+                              <h4 className="font-medium">SVM</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Clasificación con márgenes máximos para datos complejos.
+                              </p>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="w-full" 
+                                onClick={() => handleDownloadTemplate('svm')}
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Descargar SVM
+                              </Button>
+                            </div>
                           </CardContent>
                         </Card>
+                        
                         <Card>
-                          <CardContent className="pt-6">
-                            <h4 className="font-medium mb-2">Plantilla K-means</h4>
-                            <p className="text-sm text-muted-foreground mb-4">
-                              Para segmentación de datos y análisis de clusters.
-                            </p>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="w-full" 
-                              onClick={() => {
-                                toast.success(`Descargando plantilla K-means para ${industryName}`, {
-                                  description: "Incluye columnas para características de segmentación y parámetros de clusters."
-                                });
-                              }}
-                            >
-                              <Download className="h-4 w-4 mr-2" />
-                              Descargar K-means
-                            </Button>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-lg">Modelos Avanzados</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                              <h4 className="font-medium">XGBoost</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Gradient boosting de alto rendimiento para problemas complejos.
+                              </p>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="w-full" 
+                                onClick={() => handleDownloadTemplate('xgboost')}
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Descargar XGBoost
+                              </Button>
+                            </div>
+                            <div className="space-y-2">
+                              <h4 className="font-medium">Redes LSTM</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Redes neuronales para secuencias y patrones complejos.
+                              </p>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="w-full" 
+                                onClick={() => handleDownloadTemplate('lstm')}
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Descargar LSTM
+                              </Button>
+                            </div>
+                            <div className="space-y-2">
+                              <h4 className="font-medium">Análisis Estadísticos</h4>
+                              <p className="text-sm text-muted-foreground">
+                                ANOVA, PCA y otras técnicas estadísticas avanzadas.
+                              </p>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="w-full" 
+                                onClick={() => handleDownloadTemplate('anova')}
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Descargar Estadísticos
+                              </Button>
+                            </div>
                           </CardContent>
                         </Card>
                       </div>

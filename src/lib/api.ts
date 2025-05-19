@@ -1,4 +1,3 @@
-
 // Simulación de API para los propósitos del demo
 // En un entorno real, esto se conectaría a una API de backend (FastAPI, etc.)
 
@@ -569,14 +568,18 @@ const EXCEL_TEMPLATES: Record<string, Record<string, ExcelTemplate>> = {
 
 // Función para obtener una plantilla Excel para una industria específica
 export const getExcelTemplate = (industry: string, type: string = 'general'): string => {
-  // En un entorno real, esto generaría un Excel real o devolvería una URL para descarga
-  
   // Obtenemos las plantillas para la industria
   const industryTemplates = EXCEL_TEMPLATES[industry] || EXCEL_TEMPLATES.retail;
-  const template = industryTemplates[type] || industryTemplates.general;
+  let template = industryTemplates[type];
+  
+  // Si el tipo específico no existe, usamos el general
+  if (!template) {
+    console.log(`Plantilla tipo ${type} no encontrada para ${industry}, usando general`);
+    template = industryTemplates.general;
+  }
   
   // Notificamos al usuario que se inició la descarga
-  toast.success(`Descargando plantilla: ${template.fileName}`, {
+  toast.success(`Preparando plantilla: ${template.fileName}`, {
     description: template.description,
     duration: 3000,
   });
