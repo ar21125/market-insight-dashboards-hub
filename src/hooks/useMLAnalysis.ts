@@ -21,8 +21,8 @@ export const useMLAnalysis = (fileId: string | null) => {
     enabled: !!fileId,
     refetchInterval: (data) => {
       // Check if analysis is still processing
-      if (data && data.status === 'processing') {
-        return 5000; // Poll every 5 seconds
+      if (data.state.data && data.state.data.status === 'processing') {    
+      return 5000; // Poll every 5 seconds
       }
       return false; // Stop polling once complete or failed
     }
