@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -231,6 +230,20 @@ export const UploadTemplateForm: React.FC<UploadTemplateFormProps> = ({ industry
     } else {
       toast.error("Por favor seleccione un archivo y un modelo");
     }
+  };
+
+  const renderOptionInfo = (option: unknown) => {
+    // Type guard to check if option has the required properties
+    if (typeof option === 'object' && option !== null && 'name' in option && 'description' in option) {
+      return (
+        <div className="p-2">
+          <p className="font-medium">{(option as { name: string }).name}</p>
+          <p className="text-xs text-muted-foreground">{(option as { description: string }).description}</p>
+        </div>
+      );
+    }
+    // Fallback if the option doesn't have the expected structure
+    return <div className="p-2">Seleccione una opción</div>;
   };
 
   return (
