@@ -13,7 +13,8 @@ import {
   Upload, 
   FileSpreadsheet,
   FileSearch,
-  FileText
+  FileText,
+  ArrowRight
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -28,6 +29,7 @@ import {
 } from '@/components/ChartComponents';
 import { StatCard, ChartContainer, MlModelInfo } from '@/components/DashboardComponents';
 import { UploadTemplateForm } from '@/components/UploadTemplateForm';
+import { AnalysisFlows } from '@/components/AnalysisFlows';
 
 // Mapeo de industrias a nombres en español
 const industryNames: Record<string, string> = {
@@ -244,11 +246,12 @@ const Dashboard = () => {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <div className="border-b">
               <div className="container mx-auto">
-                <TabsList className="grid grid-cols-2 md:grid-cols-6 lg:grid-cols-6">
+                <TabsList className="grid grid-cols-2 md:grid-cols-7 lg:grid-cols-7">
                   <TabsTrigger value="overview">Visión general</TabsTrigger>
                   <TabsTrigger value="trends">Tendencias</TabsTrigger>
                   <TabsTrigger value="detail">Detalle</TabsTrigger>
                   <TabsTrigger value="comparison">Comparativa</TabsTrigger>
+                  <TabsTrigger value="flows">Flujos de análisis</TabsTrigger>
                   <TabsTrigger value="ml">Modelos ML</TabsTrigger>
                   <TabsTrigger value="ml_results">Resultados ML</TabsTrigger>
                 </TabsList>
@@ -437,6 +440,11 @@ const Dashboard = () => {
                   )
                 )}
               </div>
+            </TabsContent>
+
+            {/* Nueva pestaña de Flujos de Análisis */}
+            <TabsContent value="flows" className="space-y-6">
+              <AnalysisFlows industry={industry || "retail"} />
             </TabsContent>
 
             {/* Nueva pestaña de Modelos ML */}

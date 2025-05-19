@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { SimpleBarChart, GroupedBarChart, SimpleLineChart, MultiLineChart, SimplePieChart, SimpleAreaChart, SimpleScatterChart, SimpleRadarChart, MultiRadarChart, BoxPlot, HeatMap } from './ChartComponents';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -149,7 +150,8 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({
               <TooltipContent>
                 <p>Descargar como PDF</p>
               </TooltipContent>
-            </TooltipProvider>
+            </Tooltip>
+          </TooltipProvider>
           <Download className="h-4 w-4 cursor-pointer text-muted-foreground hover:text-foreground" onClick={() => exportChartAsPDF(chartId, visualization.title)} />
         </CardHeader>
         <CardContent>
