@@ -34,6 +34,12 @@ interface ModelInfo {
   parameters: string[];
 }
 
+interface ModelParameter {
+  description: string;
+  required: boolean;
+  type: string;
+}
+
 interface UploadTemplateFormProps {
   industry: string;
   onUpload: (file: File, modelType: string) => void;
@@ -47,16 +53,16 @@ export const UploadTemplateForm: React.FC<UploadTemplateFormProps> = ({ industry
   const [models, setModels] = useState<Record<string, ModelInfo>>({});
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [parameters, setParameters] = useState<any>({});
+  const [parameters, setParameters] = useState<Record<string, any>>({});
   const [modelParameters, setModelParameters] = useState<string[]>([]);
-  const [parametersMetadata, setParametersMetadata] = useState<any>({});
+  const [parametersMetadata, setParametersMetadata] = useState<Record<string, ModelParameter>>({});
 
   // Create form schema based on dynamic parameters
   const createFormSchema = () => {
     const schemaFields: Record<string, any> = {};
     
     modelParameters.forEach(param => {
-      const metadata = parametersMetadata[param] || { type: 'string', required: false };
+      const metadata = parametersMetadata[param] || { type: 'string', required: false, description: '' };
       
       if (metadata.type === 'number') {
         schemaFields[param] = metadata.required 
@@ -85,12 +91,29 @@ export const UploadTemplateForm: React.FC<UploadTemplateFormProps> = ({ industry
     async function loadModels() {
       try {
         const modelsData = await mlService.getAvailableModels(industry);
-        setModels(modelsData);
         
-        // Get unique categories
-        const uniqueCategories = Array.from(
-          new Set(Object.values(modelsData).map(model => model.category))
-        );
+        // Ensure modelsData is an object with string keys (Record<string, ModelInfo>)
+        // If it's an array, convert it to the required format
+        if (Array.isArray(modelsData)) {
+          const modelRecord: Record<string, ModelInfo> = {};
+          modelsData.forEach((model: any) => {
+            if (model && typeof model === 'object' && 'name' in model) {
+              modelRecord[model.name] = {
+                name: model.name,
+                description: model.description || '',
+                category: model.category || 'general',
+                parameters: model.parameters || []
+              };
+            }
+          });
+          setModels(modelRecord);
+        } else {
+          setModels(modelsData);
+        }
+        
+        // Get unique categories from the models
+        const allCategories = Object.values(models).map(model => model.category);
+        const uniqueCategories = Array.from(new Set(allCategories));
         setCategories(uniqueCategories);
       } catch (error) {
         console.error("Error loading models:", error);
@@ -100,7 +123,7 @@ export const UploadTemplateForm: React.FC<UploadTemplateFormProps> = ({ industry
     if (industry) {
       loadModels();
     }
-  }, [industry]);
+  }, [industry, models]);
 
   // Load parameters for the selected model
   useEffect(() => {
@@ -110,12 +133,24 @@ export const UploadTemplateForm: React.FC<UploadTemplateFormProps> = ({ industry
         
         const paramData = await mlService.getModelParameters(modelType);
         setModelParameters(paramData.parameters || []);
-        setParametersMetadata(paramData.metadata || {});
+        
+        // Ensure metadata has proper type information
+        const typedMetadata: Record<string, ModelParameter> = {};
+        Object.entries(paramData.metadata || {}).forEach(([key, value]) => {
+          const paramMeta = value as any;
+          typedMetadata[key] = {
+            description: paramMeta?.description || '',
+            required: paramMeta?.required || false,
+            type: paramMeta?.type || 'string'
+          };
+        });
+        
+        setParametersMetadata(typedMetadata);
         
         // Initialize parameter values
         const initialParams: Record<string, any> = {};
         paramData.parameters.forEach(param => {
-          const metadata = paramData.metadata[param] || {};
+          const metadata = typedMetadata[param] || { type: 'string', required: false, description: '' };
           if (metadata.type === 'number') {
             initialParams[param] = 0;
           } else {
@@ -290,7 +325,7 @@ export const UploadTemplateForm: React.FC<UploadTemplateFormProps> = ({ industry
                 <h3 className="text-sm font-medium">Parámetros del modelo</h3>
                 
                 {modelParameters.map((param) => {
-                  const metadata = parametersMetadata[param] || { type: 'string', required: false };
+                  const metadata = parametersMetadata[param] || { type: 'string', required: false, description: '' };
                   
                   return (
                     <FormField

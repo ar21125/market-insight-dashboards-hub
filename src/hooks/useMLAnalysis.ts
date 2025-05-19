@@ -28,9 +28,9 @@ export function useMLAnalysis(fileId: string | null) {
       return data;
     },
     enabled: !!fileId,
-    refetchInterval: (data: any) => {
+    refetchInterval: (data) => {
       // Keep polling while file is processing
-      return (data?.status === 'processing' || data?.status === 'uploaded') ? 3000 : false;
+      return (data && (data.status === 'processing' || data.status === 'uploaded')) ? 3000 : false;
     }
   });
 
@@ -50,23 +50,26 @@ export function useMLAnalysis(fileId: string | null) {
       return data;
     },
     enabled: !!resultId,
-    refetchInterval: (data: any) => {
+    refetchInterval: (data) => {
       // Keep polling while processing
-      return (data?.status === 'processing') ? 3000 : false;
+      return (data && data.status === 'processing') ? 3000 : false;
     },
-    onSuccess: (data) => {
-      if (data?.status === 'completed') {
-        toast.success("Análisis completado");
-      } else if (data?.status === 'failed') {
-        toast.error("Error en el análisis");
+    meta: {
+      onSuccess: (data) => {
+        if (data?.status === 'completed') {
+          toast.success("Análisis completado");
+        } else if (data?.status === 'failed') {
+          toast.error("Error en el análisis");
+        }
       }
     }
   });
 
   // Combine data from both queries to determine overall status
   const isLoading = fileQuery.isLoading || resultsQuery.isLoading || 
-                    (fileQuery.data?.status === 'processing' || fileQuery.data?.status === 'uploaded') ||
-                    (resultsQuery.data?.status === 'processing');
+                    (fileQuery.data && fileQuery.data.status === 'processing') || 
+                    (fileQuery.data && fileQuery.data.status === 'uploaded') ||
+                    (resultsQuery.data && resultsQuery.data.status === 'processing');
 
   return {
     fileId,
