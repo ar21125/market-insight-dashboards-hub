@@ -1,278 +1,293 @@
 
-# Models package initialization
+from typing import Dict, Any, List, Optional
+import logging
+import importlib
+from app.models.schemas import ModelType, Industry
 
-from .time_series_models import *
-from .classification_models import *
-from .clustering_models import *
-from .statistical_models import *
-from .regression_models import *
-from .dimensionality_models import *
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# Define model registry to track available models
+# Model Registry with metadata
 MODEL_REGISTRY = {
-    # Time series models
+    # Time Series Models
     "sarima": {
-        "module": "time_series_models",
         "class": "SARIMAModel",
-        "description": "Seasonal ARIMA model for time series forecasting",
+        "module": "app.services.models.time_series_models",
+        "description": "Modelo SARIMA para series temporales con componentes estacionales",
         "category": "time_series",
-        "parameters": ["p", "d", "q", "P", "D", "Q", "s"],
-        "industries": ["retail", "finanzas", "manufactura"]
+        "parameters": ["date_column", "value_column", "p", "d", "q", "seasonal_periods"],
+        "industries": ["retail", "finanzas", "manufactura", "tecnologia"],
+        "complementary": ["prophet", "arima", "exponential_smoothing"]
     },
     "arima": {
-        "module": "time_series_models",
         "class": "ARIMAModel",
-        "description": "ARIMA model for time series forecasting",
+        "module": "app.services.models.time_series_models",
+        "description": "Modelo ARIMA para series temporales sin componentes estacionales",
         "category": "time_series",
-        "parameters": ["p", "d", "q"],
-        "industries": ["retail", "finanzas", "manufactura"]
+        "parameters": ["date_column", "value_column", "p", "d", "q"],
+        "industries": ["retail", "finanzas", "manufactura", "salud"],
+        "complementary": ["sarima", "prophet", "linear_regression"]
     },
     "prophet": {
-        "module": "time_series_models",
-        "class": "ProphetModel", 
-        "description": "Facebook Prophet model for time series forecasting with multiple seasonality",
+        "class": "ProphetModel",
+        "module": "app.services.models.time_series_models",
+        "description": "Modelo Prophet para series temporales con múltiples estacionalidades",
         "category": "time_series",
-        "parameters": ["date_column", "target_column", "forecast_periods"],
-        "industries": ["retail", "finanzas", "manufactura", "tecnologia"]
+        "parameters": ["date_column", "value_column", "yearly_seasonality", "weekly_seasonality", "daily_seasonality"],
+        "industries": ["retail", "finanzas", "tecnologia", "salud", "manufactura"],
+        "complementary": ["sarima", "arima", "exponential_smoothing"]
     },
     "lstm": {
-        "module": "time_series_models",
         "class": "LSTMModel",
-        "description": "LSTM neural network for time series forecasting",
+        "module": "app.services.models.time_series_models",
+        "description": "Redes neuronales recurrentes tipo LSTM para series temporales complejas",
         "category": "time_series",
-        "parameters": ["sequence_length", "epochs"],
-        "industries": ["tecnologia", "finanzas"]
+        "parameters": ["date_column", "value_column", "sequence_length", "epochs", "batch_size"],
+        "industries": ["finanzas", "tecnologia", "manufactura"],
+        "complementary": ["prophet", "arima", "xgboost"]
     },
     "exponential_smoothing": {
-        "module": "time_series_models",
         "class": "ExponentialSmoothingModel",
-        "description": "Exponential Smoothing for time series forecasting",
+        "module": "app.services.models.time_series_models",
+        "description": "Suavizado exponencial para series temporales con tendencia y estacionalidad",
         "category": "time_series",
-        "parameters": ["trend", "seasonal", "seasonal_periods"],
-        "industries": ["retail", "manufactura"]
+        "parameters": ["date_column", "value_column", "trend", "seasonal", "seasonal_periods"],
+        "industries": ["retail", "finanzas", "manufactura", "salud"],
+        "complementary": ["sarima", "prophet", "arima"]
     },
     
-    # Classification models
+    # Classification Models
     "randomForest": {
-        "module": "classification_models",
         "class": "RandomForestModel",
-        "description": "Random Forest for classification and regression",
+        "module": "app.services.models.classification_models",
+        "description": "Random Forest para clasificación y regresión con múltiples árboles de decisión",
         "category": "classification",
-        "parameters": ["task", "target_column", "n_estimators", "max_depth"],
-        "industries": ["salud", "finanzas", "tecnologia"]
+        "parameters": ["target_column", "n_estimators", "max_depth", "feature_columns"],
+        "industries": ["retail", "finanzas", "salud", "manufactura", "tecnologia", "educacion"],
+        "complementary": ["xgboost", "svm", "logistic_regression"]
     },
     "xgboost": {
-        "module": "classification_models", 
         "class": "XGBoostModel",
-        "description": "XGBoost for gradient boosting classification and regression",
+        "module": "app.services.models.classification_models",
+        "description": "Gradient Boosting optimizado para clasificación y regresión de alto rendimiento",
         "category": "classification",
-        "parameters": ["task", "target_column", "n_estimators", "learning_rate"],
-        "industries": ["salud", "finanzas", "tecnologia"]
+        "parameters": ["target_column", "n_estimators", "learning_rate", "max_depth", "feature_columns"],
+        "industries": ["retail", "finanzas", "salud", "manufactura", "tecnologia"],
+        "complementary": ["randomForest", "svm", "logistic_regression"]
     },
     "svm": {
-        "module": "classification_models",
         "class": "SVMModel",
-        "description": "Support Vector Machine for classification and regression",
+        "module": "app.services.models.classification_models",
+        "description": "Support Vector Machine para clasificación con margen máximo",
         "category": "classification",
-        "parameters": ["kernel", "C", "target_column"],
-        "industries": ["salud", "tecnologia", "manufactura"]
+        "parameters": ["target_column", "kernel", "C", "gamma", "feature_columns"],
+        "industries": ["finanzas", "salud", "tecnologia", "educacion"],
+        "complementary": ["randomForest", "logistic_regression", "naive_bayes"]
     },
     "logistic_regression": {
-        "module": "classification_models",
         "class": "LogisticRegressionModel",
-        "description": "Logistic Regression for binary classification",
+        "module": "app.services.models.classification_models",
+        "description": "Regresión logística para clasificación binaria y multiclase",
         "category": "classification",
-        "parameters": ["target_column", "regularization"],
-        "industries": ["salud", "finanzas"]
+        "parameters": ["target_column", "C", "penalty", "solver", "feature_columns"],
+        "industries": ["finanzas", "salud", "retail", "educacion"],
+        "complementary": ["randomForest", "svm", "naive_bayes"]
     },
     "naive_bayes": {
-        "module": "classification_models",
         "class": "NaiveBayesModel",
-        "description": "Naive Bayes classifier",
+        "module": "app.services.models.classification_models",
+        "description": "Clasificador probabilístico basado en el teorema de Bayes",
         "category": "classification",
-        "parameters": ["target_column", "type"],
-        "industries": ["salud", "tecnologia", "educacion"]
+        "parameters": ["target_column", "var_smoothing", "feature_columns"],
+        "industries": ["tecnologia", "salud", "educacion"],
+        "complementary": ["logistic_regression", "randomForest"]
     },
     
-    # Clustering models
+    # Clustering Models
     "kmeans": {
-        "module": "clustering_models",
         "class": "KMeansModel",
-        "description": "K-means for clustering analysis",
+        "module": "app.services.models.clustering_models",
+        "description": "Agrupación de datos en clusters mediante K-means",
         "category": "clustering",
-        "parameters": ["n_clusters", "random_state"],
-        "industries": ["retail", "finanzas", "tecnologia"]
+        "parameters": ["n_clusters", "feature_columns", "random_state"],
+        "industries": ["retail", "finanzas", "tecnologia", "educacion"],
+        "complementary": ["hierarchical", "dbscan", "pca"]
     },
     "hierarchical": {
-        "module": "clustering_models",
         "class": "HierarchicalModel",
-        "description": "Hierarchical clustering",
+        "module": "app.services.models.clustering_models",
+        "description": "Agrupación jerárquica para identificar estructura anidada en datos",
         "category": "clustering",
-        "parameters": ["n_clusters", "linkage"],
-        "industries": ["retail", "finanzas", "tecnologia"]
+        "parameters": ["n_clusters", "linkage", "feature_columns"],
+        "industries": ["retail", "finanzas", "salud", "educacion"],
+        "complementary": ["kmeans", "dbscan", "pca"]
     },
     "dbscan": {
-        "module": "clustering_models",
         "class": "DBSCANModel",
-        "description": "Density-based spatial clustering",
+        "module": "app.services.models.clustering_models",
+        "description": "Agrupación basada en densidad para clusters de forma arbitraria",
         "category": "clustering",
-        "parameters": ["eps", "min_samples"],
-        "industries": ["retail", "tecnologia", "salud"]
+        "parameters": ["eps", "min_samples", "feature_columns"],
+        "industries": ["retail", "tecnologia", "manufactura"],
+        "complementary": ["kmeans", "hierarchical"]
     },
     
-    # Statistical models
-    "anova": { 
-        "module": "statistical_models",
+    # Statistical Models
+    "anova": {
         "class": "ANOVAModel",
-        "description": "Analysis of variance for statistical testing",
+        "module": "app.services.models.statistical_models",
+        "description": "Análisis de varianza para comparar medias entre grupos",
         "category": "statistical",
         "parameters": ["group_column", "value_column"],
-        "industries": ["salud", "educacion", "manufactura"]
+        "industries": ["salud", "educacion", "manufactura", "tecnologia"],
+        "complementary": ["t_test", "chi_square"]
     },
     "t_test": {
-        "module": "statistical_models",
         "class": "TTestModel",
-        "description": "T-test for comparing means",
+        "module": "app.services.models.statistical_models",
+        "description": "Test t para comparar medias de dos grupos",
         "category": "statistical",
-        "parameters": ["group_column", "value_column", "paired"],
-        "industries": ["salud", "educacion"]
+        "parameters": ["group_column", "value_column", "equal_var"],
+        "industries": ["salud", "educacion", "tecnologia"],
+        "complementary": ["anova", "chi_square"]
     },
     "chi_square": {
-        "module": "statistical_models",
         "class": "ChiSquareModel",
-        "description": "Chi-square test for categorical data",
+        "module": "app.services.models.statistical_models",
+        "description": "Test de chi-cuadrado para variables categóricas",
         "category": "statistical",
-        "parameters": ["variable_1", "variable_2"],
-        "industries": ["salud", "educacion", "retail"]
+        "parameters": ["column1", "column2"],
+        "industries": ["salud", "educacion", "retail", "tecnologia"],
+        "complementary": ["anova", "t_test"]
     },
     
-    # Regression models
+    # Regression Models
     "linear_regression": {
-        "module": "regression_models",
         "class": "LinearRegressionModel",
-        "description": "Linear Regression model",
+        "module": "app.services.models.regression_models",
+        "description": "Regresión lineal para modelar relaciones lineales",
         "category": "regression",
-        "parameters": ["target_column", "features"],
-        "industries": ["finanzas", "retail", "manufactura"]
+        "parameters": ["target_column", "feature_columns"],
+        "industries": ["retail", "finanzas", "salud", "manufactura", "tecnologia", "educacion"],
+        "complementary": ["polynomial_regression", "ridge_regression", "arima"]
     },
     "polynomial_regression": {
-        "module": "regression_models",
         "class": "PolynomialRegressionModel",
-        "description": "Polynomial Regression model",
+        "module": "app.services.models.regression_models",
+        "description": "Regresión polinómica para relaciones no lineales",
         "category": "regression",
-        "parameters": ["target_column", "features", "degree"],
-        "industries": ["finanzas", "manufactura", "tecnologia"]
+        "parameters": ["target_column", "feature_columns", "degree"],
+        "industries": ["retail", "finanzas", "manufactura", "tecnologia"],
+        "complementary": ["linear_regression", "ridge_regression"]
     },
     "ridge_regression": {
-        "module": "regression_models",
         "class": "RidgeRegressionModel",
-        "description": "Ridge Regression model with L2 regularization",
+        "module": "app.services.models.regression_models",
+        "description": "Regresión Ridge con regularización L2",
         "category": "regression",
-        "parameters": ["target_column", "features", "alpha"],
-        "industries": ["finanzas", "tecnologia"]
+        "parameters": ["target_column", "feature_columns", "alpha"],
+        "industries": ["finanzas", "manufactura", "tecnologia"],
+        "complementary": ["linear_regression", "polynomial_regression"]
     },
     
-    # Dimensionality reduction models
+    # Dimensionality Reduction Models
     "pca": {
-        "module": "dimensionality_models",
         "class": "PCAModel",
-        "description": "Principal Component Analysis",
+        "module": "app.services.models.dimensionality_models",
+        "description": "Análisis de componentes principales para reducción de dimensionalidad",
         "category": "dimensionality_reduction",
-        "parameters": ["n_components"],
-        "industries": ["tecnologia", "salud", "finanzas"]
+        "parameters": ["n_components", "feature_columns"],
+        "industries": ["finanzas", "salud", "manufactura", "tecnologia"],
+        "complementary": ["tsne", "kmeans", "hierarchical"]
     },
     "tsne": {
-        "module": "dimensionality_models",
         "class": "TSNEModel",
-        "description": "t-distributed Stochastic Neighbor Embedding",
+        "module": "app.services.models.dimensionality_models",
+        "description": "t-SNE para visualización de datos de alta dimensionalidad",
         "category": "dimensionality_reduction",
-        "parameters": ["n_components", "perplexity"],
-        "industries": ["tecnologia", "salud"]
+        "parameters": ["n_components", "perplexity", "feature_columns"],
+        "industries": ["salud", "tecnologia", "educacion"],
+        "complementary": ["pca", "kmeans"]
     }
 }
 
-# Function to get model class based on model_type
-def get_model_class(model_type):
+def get_model_class(model_type: ModelType):
     """
-    Get the appropriate model class based on model type
-    
-    Args:
-        model_type (str): Type of model to use
-        
-    Returns:
-        class: The model class
+    Get the appropriate model class based on the model type
     """
-    if model_type not in MODEL_REGISTRY:
-        raise ValueError(f"Unknown model type: {model_type}")
-        
-    model_info = MODEL_REGISTRY[model_type]
-    module_name = model_info["module"]
-    class_name = model_info["class"]
+    model_type_str = model_type.value
+
+    if model_type_str not in MODEL_REGISTRY:
+        logger.warning(f"Model type {model_type_str} not found in registry, using fallback model")
+        # Import and return a fallback model
+        from app.services.models.fallback_model import FallbackModel
+        return FallbackModel
     
-    # Import dynamically from the appropriate module
     try:
-        module = globals()[module_name]
+        # Get model info from the registry
+        model_info = MODEL_REGISTRY[model_type_str]
+        module_name = model_info.get("module")
+        class_name = model_info.get("class")
+        
+        # Import the module
+        module = importlib.import_module(module_name)
+        
+        # Get the class from the module
         model_class = getattr(module, class_name)
+        
         return model_class
-    except (KeyError, AttributeError) as e:
-        # Fallback for models that might not be available due to missing dependencies
-        from .fallback_model import FallbackModel
+        
+    except (ImportError, AttributeError) as e:
+        logger.error(f"Error loading model class for {model_type_str}: {str(e)}")
+        
+        # Import and return a fallback model
+        from app.services.models.fallback_model import FallbackModel
         return FallbackModel
 
-# Function to get available models by industry
-def get_models_by_industry(industry=None):
+def get_models_by_category(category: str) -> Dict[str, Any]:
     """
-    Get all available models filtered by industry if specified
-    
-    Args:
-        industry (str, optional): Industry to filter models by
-        
-    Returns:
-        dict: Dictionary of models with their metadata
+    Get all models for a specific category
     """
-    if industry is None:
-        return MODEL_REGISTRY
-        
-    filtered_models = {}
-    for model_id, model_info in MODEL_REGISTRY.items():
-        if 'industries' not in model_info or industry in model_info['industries']:
-            filtered_models[model_id] = model_info
-            
-    return filtered_models
+    return {k: v for k, v in MODEL_REGISTRY.items() if v.get("category") == category}
 
-# Function to get model parameters
-def get_model_parameters(model_type):
+def get_models_by_industry(industry: str) -> Dict[str, Any]:
     """
-    Get the required parameters for a specific model type
-    
-    Args:
-        model_type (str): Type of model
-        
-    Returns:
-        list: List of parameter names
+    Get all models suitable for a specific industry
+    """
+    return {k: v for k, v in MODEL_REGISTRY.items() if industry in v.get("industries", [])}
+
+def get_model_parameters(model_type: str) -> List[str]:
+    """
+    Get parameters for a specific model type
+    """
+    if model_type in MODEL_REGISTRY:
+        return MODEL_REGISTRY[model_type].get("parameters", [])
+    return []
+
+def get_complementary_models(model_type: str, industry: str = None) -> List[Dict[str, Any]]:
+    """
+    Get complementary model recommendations for a specific model type and industry
     """
     if model_type not in MODEL_REGISTRY:
         return []
-        
-    return MODEL_REGISTRY[model_type].get('parameters', [])
-
-# Function to get models by category
-def get_models_by_category(category=None):
-    """
-    Get all available models filtered by category if specified
     
-    Args:
-        category (str, optional): Category to filter models by
-        
-    Returns:
-        dict: Dictionary of models with their metadata
-    """
-    if category is None:
-        return MODEL_REGISTRY
-        
-    filtered_models = {}
-    for model_id, model_info in MODEL_REGISTRY.items():
-        if model_info.get('category') == category:
-            filtered_models[model_id] = model_info
+    complementary_model_ids = MODEL_REGISTRY[model_type].get("complementary", [])
+    complementary_models = []
+    
+    for model_id in complementary_model_ids:
+        if model_id in MODEL_REGISTRY:
+            model_info = MODEL_REGISTRY[model_id]
             
-    return filtered_models
+            # Filter by industry if specified
+            if industry and industry not in model_info.get("industries", []):
+                continue
+                
+            complementary_models.append({
+                "id": model_id,
+                "name": model_info.get("class", model_id),
+                "description": model_info.get("description", ""),
+                "category": model_info.get("category", "other")
+            })
+    
+    return complementary_models

@@ -1,6 +1,83 @@
 // This file would contain query hooks for ML analysis
+import { useState } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+export function useMLAnalysis(fileId: string | null) {
+  const [resultId, setResultId] = useState<string | null>(null);
+
+  // Query to get file status
+  const fileQuery = useQuery({
+    queryKey: ['file', fileId],
+    queryFn: async () => {
+      if (!fileId) return null;
+      
+      const { data, error } = await supabase
+        .from('uploaded_files')
+        .select('*')
+        .eq('id', fileId)
+        .single();
+      
+      if (error) throw error;
+      
+      if (data?.result_id && data.result_id !== resultId) {
+        setResultId(data.result_id);
+      }
+      
+      return data;
+    },
+    enabled: !!fileId,
+    refetchInterval: (data: any) => {
+      // Keep polling while file is processing
+      return (data?.status === 'processing' || data?.status === 'uploaded') ? 3000 : false;
+    }
+  });
+
+  // Query to get analysis results
+  const resultsQuery = useQuery({
+    queryKey: ['results', resultId],
+    queryFn: async () => {
+      if (!resultId) return null;
+      
+      const { data, error } = await supabase
+        .from('analysis_results')
+        .select('*')
+        .eq('id', resultId)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!resultId,
+    refetchInterval: (data: any) => {
+      // Keep polling while processing
+      return (data?.status === 'processing') ? 3000 : false;
+    },
+    onSuccess: (data) => {
+      if (data?.status === 'completed') {
+        toast.success("Análisis completado");
+      } else if (data?.status === 'failed') {
+        toast.error("Error en el análisis");
+      }
+    }
+  });
+
+  // Combine data from both queries to determine overall status
+  const isLoading = fileQuery.isLoading || resultsQuery.isLoading || 
+                    (fileQuery.data?.status === 'processing' || fileQuery.data?.status === 'uploaded') ||
+                    (resultsQuery.data?.status === 'processing');
+
+  return {
+    fileId,
+    resultId,
+    isLoading,
+    fileStatus: fileQuery.data?.status,
+    result: resultsQuery.data,
+    fileError: fileQuery.error,
+    resultError: resultsQuery.error
+  };
+}
 
 export function useAnalysisResult(analysisId: string | undefined) {
   return useQuery({
