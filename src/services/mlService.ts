@@ -10,6 +10,7 @@ export interface AnalysisRequest {
   file: File;
   industry: string;
   modelType: string;
+  parameters?: Record<string, any>;
 }
 
 export interface AnalysisResponse {
@@ -18,11 +19,23 @@ export interface AnalysisResponse {
   result?: any;
 }
 
+export interface ModelParameter {
+  description: string;
+  required: boolean;
+  type: string;
+}
+
+export interface ModelParametersResponse {
+  model_id: string;
+  parameters: string[];
+  metadata: Record<string, ModelParameter>;
+}
+
 export const mlService = {
   /**
    * Upload a file for analysis
    */
-  async uploadForAnalysis({ file, industry, modelType }: AnalysisRequest): Promise<AnalysisResponse> {
+  async uploadForAnalysis({ file, industry, modelType, parameters = {} }: AnalysisRequest): Promise<AnalysisResponse> {
     try {
       // Step 1: Upload file to Supabase Storage
       const fileExt = file.name.split('.').pop();
@@ -65,6 +78,9 @@ export const mlService = {
       formData.append('file_id', fileRecord.id);
       formData.append('industry', industry);
       formData.append('model_type', modelType);
+      
+      // Add parameters as JSON string
+      formData.append('parameters', JSON.stringify(parameters));
       
       const response = await fetch(`${FASTAPI_URL}/analyze`, {
         method: 'POST',
@@ -127,6 +143,15 @@ export const mlService = {
    */
   async getAvailableModels(industry: string): Promise<any[]> {
     try {
+      // First try to get models from the FastAPI backend
+      const response = await fetch(`${FASTAPI_URL}/analyze/models?industry=${industry}`);
+      
+      if (response.ok) {
+        return await response.json();
+      }
+      
+      // Fallback to Supabase if FastAPI fails
+      console.warn("Falling back to Supabase for model data");
       const { data, error } = await supabase
         .from('ml_models')
         .select('*')
@@ -142,6 +167,66 @@ export const mlService = {
     } catch (error) {
       console.error("Error in getAvailableModels:", error);
       return [];
+    }
+  },
+  
+  /**
+   * Get all model categories
+   */
+  async getModelCategories(): Promise<string[]> {
+    try {
+      const response = await fetch(`${FASTAPI_URL}/analyze/categories`);
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch model categories");
+      }
+      
+      const data = await response.json();
+      return data.categories || [];
+    } catch (error) {
+      console.error("Error fetching model categories:", error);
+      return [];
+    }
+  },
+  
+  /**
+   * Get supported industries
+   */
+  async getSupportedIndustries(): Promise<string[]> {
+    try {
+      const response = await fetch(`${FASTAPI_URL}/analyze/industries`);
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch supported industries");
+      }
+      
+      const data = await response.json();
+      return data.industries || [];
+    } catch (error) {
+      console.error("Error fetching supported industries:", error);
+      return ["retail", "finanzas", "salud", "manufactura", "tecnologia", "educacion"];
+    }
+  },
+  
+  /**
+   * Get parameters for a specific model
+   */
+  async getModelParameters(modelType: string): Promise<ModelParametersResponse> {
+    try {
+      const response = await fetch(`${FASTAPI_URL}/analyze/models/${modelType}/parameters`);
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch model parameters");
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching model parameters:", error);
+      return {
+        model_id: modelType,
+        parameters: [],
+        metadata: {}
+      };
     }
   },
   

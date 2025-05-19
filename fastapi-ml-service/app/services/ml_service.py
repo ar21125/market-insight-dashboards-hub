@@ -5,12 +5,7 @@ import logging
 from typing import Dict, Any, Tuple
 import importlib
 from app.models.schemas import ModelType, Industry
-from app.services.models import (
-    time_series_models,
-    classification_models, 
-    clustering_models,
-    statistical_models
-)
+from app.services.models import get_model_class
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -18,24 +13,9 @@ logger = logging.getLogger(__name__)
 
 class MLService:
     def __init__(self):
-        self.model_registry = {
-            # Time series models
-            ModelType.SARIMA: time_series_models.sarima_analysis,
-            ModelType.ARIMA: time_series_models.arima_analysis,
-            ModelType.PROPHET: time_series_models.prophet_analysis,
-            ModelType.LSTM: time_series_models.lstm_analysis,
-            
-            # Classification models
-            ModelType.RANDOM_FOREST: classification_models.random_forest_analysis,
-            ModelType.XGBOOST: classification_models.xgboost_analysis,
-            ModelType.SVM: classification_models.svm_analysis,
-            
-            # Clustering models
-            ModelType.KMEANS: clustering_models.kmeans_analysis,
-            
-            # Statistical models
-            ModelType.ANOVA: statistical_models.anova_analysis,
-        }
+        # We no longer need to map model types to functions directly
+        # Instead, we'll use the model registry to get the appropriate model class
+        pass
     
     async def process_file(self, file_path: str, model_type: ModelType, 
                          industry: Industry, parameters: Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any]]:
@@ -46,13 +26,17 @@ class MLService:
             # Read the Excel file
             df = pd.read_excel(file_path)
             
-            # Process with the appropriate model
-            if model_type in self.model_registry:
-                processor = self.model_registry[model_type]
-                result, metrics = processor(df, industry, parameters)
+            # Get the appropriate model class
+            try:
+                model_class = get_model_class(model_type)
+                
+                # Process with the model
+                result, metrics = model_class.analyze(df, industry, parameters)
                 return result, metrics
-            else:
-                raise ValueError(f"Unsupported model type: {model_type}")
+                
+            except ValueError as e:
+                logger.error(f"Error getting model class: {str(e)}")
+                raise
                 
         except Exception as e:
             logger.error(f"Error processing file: {str(e)}")

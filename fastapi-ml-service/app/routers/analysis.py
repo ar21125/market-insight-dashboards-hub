@@ -5,10 +5,11 @@ import os
 import uuid
 import json
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from app.models.schemas import ModelType, Industry, AnalysisResponse
 from app.services.ml_service import ml_service
 from app.services.supabase_service import supabase_service
+from app.services.models import MODEL_REGISTRY, get_models_by_industry, get_models_by_category, get_model_parameters
 
 router = APIRouter(prefix="/analyze", tags=["Analysis"])
 
@@ -117,74 +118,84 @@ async def analyze_from_storage(
         raise HTTPException(status_code=500, detail=f"Error starting analysis: {str(e)}")
 
 @router.get("/models")
-async def get_available_models():
+async def get_available_models(industry: Optional[str] = None, category: Optional[str] = None):
     """Get all supported model types and their descriptions"""
     
-    models = {
-        # Time series models
-        "sarima": {
-            "name": "SARIMA",
-            "description": "Series temporales estacionales",
-            "category": "time_series",
-            "parameters": ["p", "d", "q", "P", "D", "Q", "s"]
-        },
-        "arima": {
-            "name": "ARIMA",
-            "description": "Series temporales no estacionales",
-            "category": "time_series",
-            "parameters": ["p", "d", "q"]
-        },
-        "prophet": {
-            "name": "Prophet",
-            "description": "Pronósticos múltiples estacionalidades",
-            "category": "time_series",
-            "parameters": ["date_column", "target_column", "forecast_periods"] 
-        },
-        "lstm": {
-            "name": "LSTM",
-            "description": "Redes neuronales recurrentes",
-            "category": "time_series",
-            "parameters": ["sequence_length", "epochs"]
-        },
+    if industry and category:
+        # Filter by both industry and category
+        models_by_industry = get_models_by_industry(industry)
+        models_by_category = get_models_by_category(category)
         
-        # Classification models
-        "randomForest": {
-            "name": "Random Forest",
-            "description": "Clasificación/Regresión",
-            "category": "classification",
-            "parameters": ["task", "target_column"]
-        },
-        "xgboost": {
-            "name": "XGBoost",
-            "description": "Gradient boosting",
-            "category": "classification",
-            "parameters": ["task", "target_column"]
-        },
-        "svm": {
-            "name": "SVM",
-            "description": "Support Vector Machines",
-            "category": "classification",
-            "parameters": ["task", "target_column"]
-        },
-        
-        # Clustering models
-        "kmeans": {
-            "name": "K-means",
-            "description": "Segmentación",
-            "category": "clustering",
-            "parameters": ["n_clusters"]
-        },
-        
-        # Statistical models
-        "anova": {
-            "name": "ANOVA",
-            "description": "Análisis de varianza",
-            "category": "statistical",
-            "parameters": ["group_column", "value_column"]
-        }
-    }
+        # Intersection of both filters
+        models = {k: v for k, v in models_by_industry.items() if k in models_by_category}
+    elif industry:
+        # Filter by industry only
+        models = get_models_by_industry(industry)
+    elif category:
+        # Filter by category only
+        models = get_models_by_category(category)
+    else:
+        # No filters, return all models
+        models = MODEL_REGISTRY
     
-    return models
+    # Format the response
+    formatted_models = {}
+    for model_id, model_info in models.items():
+        formatted_models[model_id] = {
+            "name": model_info.get("class", model_id),
+            "description": model_info.get("description", ""),
+            "category": model_info.get("category", "other"),
+            "parameters": model_info.get("parameters", []),
+            "industries": model_info.get("industries", [])
+        }
+    
+    return formatted_models
+
+@router.get("/models/{model_id}/parameters")
+async def get_model_parameters_endpoint(model_id: str):
+    """Get parameters for a specific model"""
+    if model_id not in MODEL_REGISTRY:
+        raise HTTPException(status_code=404, detail=f"Model {model_id} not found")
+    
+    # Get parameters from the model registry
+    parameters = MODEL_REGISTRY[model_id].get("parameters", [])
+    
+    # Get additional metadata about parameters if available
+    parameter_metadata = {}
+    for param in parameters:
+        parameter_metadata[param] = {
+            "description": f"Parameter {param} for {model_id} model",
+            "required": param in ["target_column", "date_column", "value_column", "group_column"],
+            "type": "number" if param in ["n_clusters", "p", "d", "q", "epochs", "degree", "alpha"] else "string"
+        }
+    
+    return {
+        "model_id": model_id,
+        "parameters": parameters,
+        "metadata": parameter_metadata
+    }
+
+@router.get("/categories")
+async def get_model_categories():
+    """Get all available model categories"""
+    
+    categories = set()
+    for model_info in MODEL_REGISTRY.values():
+        if "category" in model_info:
+            categories.add(model_info["category"])
+    
+    return {"categories": sorted(list(categories))}
+
+@router.get("/industries")
+async def get_model_industries():
+    """Get all available industries supported by models"""
+    
+    industries = set()
+    for model_info in MODEL_REGISTRY.values():
+        if "industries" in model_info:
+            industries.update(model_info["industries"])
+    
+    return {"industries": sorted(list(industries))}
 
 async def process_analysis(
     file_path: str,
