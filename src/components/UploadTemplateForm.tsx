@@ -93,7 +93,6 @@ export const UploadTemplateForm: React.FC<UploadTemplateFormProps> = ({ industry
         const modelsData = await mlService.getAvailableModels(industry);
         
         // Ensure modelsData is an object with string keys (Record<string, ModelInfo>)
-        // If it's an array, convert it to the required format
         if (Array.isArray(modelsData)) {
           const modelRecord: Record<string, ModelInfo> = {};
           modelsData.forEach((model: any) => {
@@ -107,8 +106,12 @@ export const UploadTemplateForm: React.FC<UploadTemplateFormProps> = ({ industry
             }
           });
           setModels(modelRecord);
+        } else if (typeof modelsData === 'object' && modelsData !== null) {
+          // If it's already an object, cast it to the correct type
+          setModels(modelsData as Record<string, ModelInfo>);
         } else {
-          setModels(modelsData);
+          // Default to empty object if the data is invalid
+          setModels({});
         }
         
         // Get unique categories from the models
@@ -269,11 +272,17 @@ export const UploadTemplateForm: React.FC<UploadTemplateFormProps> = ({ industry
                   <SelectValue placeholder="Seleccionar modelo" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(filteredModels()).map(([key, model]) => (
-                    <SelectItem key={key} value={key}>
-                      {model.name}: {model.description}
-                    </SelectItem>
-                  ))}
+                  {Object.entries(filteredModels()).map(([key, model]) => {
+                    // Type-safe access to model properties with fallbacks
+                    const modelName = typeof model.name === 'string' ? model.name : key;
+                    const modelDesc = typeof model.description === 'string' ? model.description : '';
+                    
+                    return (
+                      <SelectItem key={key} value={key}>
+                        {modelName}: {modelDesc}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
