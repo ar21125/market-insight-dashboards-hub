@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,7 @@ import {
   BrainCog
 } from 'lucide-react';
 import DefaultLayout from '@/layouts/DefaultLayout';
-import IndustryAnalysisOverview from '@/components/IndustryAnalysisOverview';
+import { IndustryAnalysisOverview } from '@/components/IndustryAnalysisOverview';
 
 const Index = () => {
   return (
