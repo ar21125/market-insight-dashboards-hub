@@ -99,6 +99,12 @@ const Industries = () => {
               <li>
                 <Link to="/industries" className="font-medium">Industrias</Link>
               </li>
+              <li>
+                <Link to="/analysis-capabilities" className="font-medium">Capacidades</Link>
+              </li>
+              <li>
+                <Link to="/ai-models" className="font-medium">Modelos IA</Link>
+              </li>
             </ul>
           </nav>
         </div>
@@ -132,13 +138,20 @@ const Industries = () => {
                     ))}
                   </ul>
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="flex flex-col gap-2">
                   <Button asChild className="w-full">
                     <Link to={industry.implementationPath} className="flex items-center justify-center gap-2">
                       Ver análisis
                       <ArrowRight className="h-4 w-4" />
                     </Link>
                   </Button>
+                  {(industry.id === "agricultura" || industry.id === "energia") && (
+                    <Button variant="outline" asChild className="w-full">
+                      <Link to={`/contact/${industry.id}`} className="flex items-center justify-center gap-2">
+                        Solicitar demostración
+                      </Link>
+                    </Button>
+                  )}
                 </CardFooter>
               </Card>
             ))}

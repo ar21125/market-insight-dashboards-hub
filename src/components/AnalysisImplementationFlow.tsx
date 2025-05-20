@@ -1,12 +1,13 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileUp, Clock, Database, ChartPie, CheckCircle, Download, Upload, FileText } from 'lucide-react';
+import { FileUp, Clock, Database, ChartPie, CheckCircle, Download, Upload, FileText, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 interface ImplementationStep {
   id: number;
@@ -58,6 +59,12 @@ const AnalysisImplementationFlow: React.FC<ImplementationFlowProps> = ({
     return industry.charAt(0).toUpperCase() + industry.slice(1);
   };
 
+  const handleTemplateDownload = () => {
+    toast.success("La plantilla se está descargando...", {
+      description: "Recibirá una plantilla Excel para completar con sus datos."
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between gap-4">
@@ -70,6 +77,14 @@ const AnalysisImplementationFlow: React.FC<ImplementationFlowProps> = ({
             <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
             <span className="text-sm text-muted-foreground">Tiempo estimado: {totalTime}</span>
           </div>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <Link to={`/contact/${industry}`}>
+              <Phone className="h-4 w-4 mr-2" />
+              Contactar experto
+            </Link>
+          </Button>
         </div>
       </div>
 
@@ -89,7 +104,7 @@ const AnalysisImplementationFlow: React.FC<ImplementationFlowProps> = ({
               <p className="text-sm text-muted-foreground">Siga estos pasos para implementar el análisis</p>
             </div>
             {templateUrl && (
-              <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <Button variant="outline" size="sm" className="flex items-center gap-2" onClick={handleTemplateDownload}>
                 <Download className="h-4 w-4" />
                 <span>Descargar plantilla</span>
               </Button>
@@ -128,11 +143,49 @@ const AnalysisImplementationFlow: React.FC<ImplementationFlowProps> = ({
                 <h3 className="text-lg font-medium mb-1">¿Listo para comenzar?</h3>
                 <p className="text-sm text-muted-foreground">Inicie el proceso de análisis ahora</p>
               </div>
-              <div className="flex gap-3">
-                <Button asChild>
-                  <Link to={`/upload/${industry}`}>
-                    <Upload className="h-4 w-4 mr-2" />
-                    Subir datos
+              <div className="flex gap-3 flex-wrap">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="default">
+                      <Upload className="h-4 w-4 mr-2" />
+                      Subir datos
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Subir datos para análisis</DialogTitle>
+                      <DialogDescription>
+                        Suba sus datos para comenzar el proceso de {analysisName}.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 space-y-4">
+                      <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                        <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                        <p className="text-sm text-muted-foreground">
+                          Arrastre y suelte sus archivos aquí o haga clic para seleccionarlos
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Formatos aceptados: .xlsx, .csv, .json
+                        </p>
+                        <Button size="sm" className="mt-4" onClick={() => toast.info("Función en desarrollo")}>
+                          Seleccionar archivos
+                        </Button>
+                      </div>
+                      <div className="flex justify-between">
+                        <Button variant="outline" onClick={() => toast.info("Función en desarrollo")}>
+                          <Download className="h-4 w-4 mr-2" />
+                          Descargar plantilla
+                        </Button>
+                        <Button onClick={() => toast.info("Función en desarrollo")}>
+                          Continuar
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+                <Button variant="outline" asChild>
+                  <Link to={`/contact/${industry}`}>
+                    Solicitar demostración
                   </Link>
                 </Button>
               </div>
@@ -147,12 +200,51 @@ const AnalysisImplementationFlow: React.FC<ImplementationFlowProps> = ({
               <h3 className="text-lg font-medium">Datos necesarios para el análisis</h3>
               <p className="text-sm text-muted-foreground">Prepare estos datos para obtener los mejores resultados</p>
             </div>
-            {templateUrl && (
-              <Button variant="outline" size="sm" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                <span>Ver ejemplo</span>
-              </Button>
-            )}
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  <span>Ver ejemplo</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Ejemplo de datos para {analysisName}</DialogTitle>
+                  <DialogDescription>
+                    Así es como debería estructurar sus datos para este análisis.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                  <ScrollArea className="h-[400px]">
+                    <div className="space-y-4">
+                      {dataRequirements.map((req, index) => (
+                        <div key={index} className="space-y-2 border-b pb-4 last:border-0 last:pb-0">
+                          <h4 className="font-medium">{req.name}</h4>
+                          <p className="text-sm text-muted-foreground">{req.description}</p>
+                          <div>
+                            <h5 className="text-sm font-medium">Formato ejemplo:</h5>
+                            <div className="bg-muted/50 p-2 rounded-md font-mono text-xs whitespace-pre-wrap mt-1">
+                              {req.example}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                  <div className="mt-4 flex justify-between">
+                    <Button variant="outline" onClick={handleTemplateDownload}>
+                      <Download className="h-4 w-4 mr-2" />
+                      Descargar plantilla
+                    </Button>
+                    <Button asChild>
+                      <Link to={`/contact/${industry}`}>
+                        Contactar a un experto
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <ScrollArea className="h-[450px] pr-4">
@@ -244,11 +336,49 @@ const AnalysisImplementationFlow: React.FC<ImplementationFlowProps> = ({
                 <h3 className="text-lg font-medium mb-1">Maximice el retorno de su inversión</h3>
                 <p className="text-sm text-muted-foreground">Implemente este análisis para obtener resultados tangibles</p>
               </div>
-              <div className="flex gap-3">
-                <Button asChild>
-                  <Link to={`/upload/${industry}`}>
-                    <Upload className="h-4 w-4 mr-2" />
-                    Comenzar análisis
+              <div className="flex gap-3 flex-wrap">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="default">
+                      <Upload className="h-4 w-4 mr-2" />
+                      Comenzar análisis
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Comenzar análisis</DialogTitle>
+                      <DialogDescription>
+                        Inicie el proceso de {analysisName} para su negocio.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 space-y-4">
+                      <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                        <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                        <p className="text-sm text-muted-foreground">
+                          Arrastre y suelte sus archivos aquí o haga clic para seleccionarlos
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Formatos aceptados: .xlsx, .csv, .json
+                        </p>
+                        <Button size="sm" className="mt-4" onClick={() => toast.info("Función en desarrollo")}>
+                          Seleccionar archivos
+                        </Button>
+                      </div>
+                      <div className="flex justify-between">
+                        <Button variant="outline" onClick={handleTemplateDownload}>
+                          <Download className="h-4 w-4 mr-2" />
+                          Descargar plantilla
+                        </Button>
+                        <Button onClick={() => toast.info("Función en desarrollo")}>
+                          Continuar
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+                <Button variant="outline" asChild>
+                  <Link to={`/contact/${industry}`}>
+                    Hablar con un experto
                   </Link>
                 </Button>
               </div>

@@ -8,6 +8,7 @@ import AIModelsPage from "./pages/AIModelsPage";
 import AnalysisCapabilitiesPage from "./pages/AnalysisCapabilitiesPage";
 import AgricultureImplementation from "./pages/AgricultureImplementation";
 import EnergyImplementation from "./pages/EnergyImplementation";
+import ContactPage from "./pages/ContactPage";
 import { Toaster } from "@/components/ui/sonner";
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
           <Route path="/ai-models" element={<AIModelsPage />} />
           <Route path="/implementation/agricultura" element={<AgricultureImplementation />} />
           <Route path="/implementation/energia" element={<EnergyImplementation />} />
+          <Route path="/contact/:industry" element={<ContactPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
