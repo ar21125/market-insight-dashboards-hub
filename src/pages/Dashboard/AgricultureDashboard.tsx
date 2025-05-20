@@ -1,46 +1,83 @@
 
-import React from 'react';
-import DefaultLayout from '../../layouts/DefaultLayout';
-import { Button } from '@/components/ui/button';
+import React, { useState } from 'react';
+import DefaultLayout from '@/layouts/DefaultLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Link } from 'react-router-dom';
-import { ArrowDown, ArrowUp, Download, FileBarChart, MoreHorizontal, BarChart, BarChart3, LineChart, ChevronRight, Thermometer, Droplets, Wind, ArrowRight } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { BarChart, LineChart, PieChart, ResponsiveContainer, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line, Pie, Cell } from 'recharts';
+import { Separator } from '@/components/ui/separator';
+import { Link } from 'react-router-dom';
+import { ChevronRight, Download, ExternalLink, FileSpreadsheet } from 'lucide-react';
 
-// Mock data for charts
-const mockChartUrl = "data:image/svg+xml,%3Csvg width='500' height='300' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23f5f5f5'/%3E%3Cpath d='M0,150 C100,100 150,200 200,100 C250,0 300,200 400,150 L400,300 L0,300 Z' fill='rgba(99, 102, 241, 0.2)' stroke='rgb(99, 102, 241)' stroke-width='2'/%3E%3C/svg%3E";
+// Datos de ejemplo para agricultura
+const cropYieldData = [
+  { name: 'Ene', maiz: 83, trigo: 65, soja: 91 },
+  { name: 'Feb', maiz: 85, trigo: 68, soja: 88 },
+  { name: 'Mar', maiz: 101, trigo: 71, soja: 90 },
+  { name: 'Abr', maiz: 99, trigo: 65, soja: 93 },
+  { name: 'May', maiz: 87, trigo: 72, soja: 95 },
+  { name: 'Jun', maiz: 92, trigo: 75, soja: 97 },
+  { name: 'Jul', maiz: 89, trigo: 80, soja: 94 },
+  { name: 'Ago', maiz: 95, trigo: 74, soja: 99 },
+  { name: 'Sep', maiz: 102, trigo: 78, soja: 96 },
+  { name: 'Oct', maiz: 110, trigo: 82, soja: 98 },
+  { name: 'Nov', maiz: 98, trigo: 84, soja: 102 },
+  { name: 'Dic', maiz: 94, trigo: 81, soja: 105 },
+];
+
+const soilMoistureData = [
+  { name: 'Zona A', value: 22 },
+  { name: 'Zona B', value: 28 },
+  { name: 'Zona C', value: 35 },
+  { name: 'Zona D', value: 15 },
+];
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+
+const weatherImpactData = [
+  { name: 'Semana 1', temperatura: 29, precipitacion: 10, rendimiento: 81 },
+  { name: 'Semana 2', temperatura: 32, precipitacion: 5, rendimiento: 78 },
+  { name: 'Semana 3', temperatura: 34, precipitacion: 0, rendimiento: 74 },
+  { name: 'Semana 4', temperatura: 33, precipitacion: 15, rendimiento: 79 },
+  { name: 'Semana 5', temperatura: 30, precipitacion: 25, rendimiento: 85 },
+  { name: 'Semana 6', temperatura: 28, precipitacion: 20, rendimiento: 89 },
+  { name: 'Semana 7', temperatura: 26, precipitacion: 18, rendimiento: 91 },
+  { name: 'Semana 8', temperatura: 27, precipitacion: 12, rendimiento: 87 },
+];
+
+const resourceUsageData = [
+  { name: 'Agua', optimo: 75, actual: 82 },
+  { name: 'Fertilizante', optimo: 55, actual: 49 },
+  { name: 'Pesticidas', optimo: 40, actual: 38 },
+  { name: 'Combustible', optimo: 65, actual: 58 },
+  { name: 'Electricidad', optimo: 60, actual: 65 },
+];
 
 const AgricultureDashboard = () => {
-  const [timeRange, setTimeRange] = React.useState("30d");
-  
+  const [cropType, setCropType] = useState('maiz');
+
   return (
     <DefaultLayout>
-      <div className="container mx-auto py-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+      <div className="container mx-auto p-4 pb-16">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-bold mb-1">Dashboard de Agricultura</h1>
             <p className="text-muted-foreground">
-              Análisis y optimización de cultivos basado en datos
+              Monitoreo de rendimiento de cultivos, condiciones del suelo y recursos
             </p>
           </div>
           
-          <div className="flex items-center gap-2">
-            <Select
-              defaultValue={timeRange}
-              onValueChange={(value) => setTimeRange(value)}
-            >
+          <div className="flex gap-2">
+            <Select defaultValue={cropType} onValueChange={setCropType}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Periodo" />
+                <SelectValue placeholder="Tipo de Cultivo" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="7d">Últimos 7 días</SelectItem>
-                <SelectItem value="30d">Últimos 30 días</SelectItem>
-                <SelectItem value="90d">Últimos 90 días</SelectItem>
-                <SelectItem value="12m">Último año</SelectItem>
+                <SelectItem value="maiz">Maíz</SelectItem>
+                <SelectItem value="trigo">Trigo</SelectItem>
+                <SelectItem value="soja">Soja</SelectItem>
               </SelectContent>
             </Select>
             
@@ -51,286 +88,357 @@ const AgricultureDashboard = () => {
           </div>
         </div>
         
-        <div className="grid gap-6 md:grid-cols-3 mb-6">
-          {/* KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Rendimiento promedio
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">Rendimiento Promedio</CardTitle>
+              <CardDescription>Por hectárea, último año</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-baseline justify-between">
-                <div className="text-2xl font-bold">7.4 ton/ha</div>
-                <div className="flex items-center text-green-600">
-                  <ArrowUp className="h-4 w-4 mr-1" />
-                  <span className="text-sm font-medium">12.8%</span>
-                </div>
+              <div className="text-2xl font-bold">
+                {cropType === 'maiz' ? '8.7' : cropType === 'trigo' ? '7.2' : '9.1'} toneladas/ha
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Comparado con temporada anterior
+              <p className="text-xs text-muted-foreground">
+                <span className="text-emerald-500">↑ 12%</span> vs. año anterior
               </p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Eficiencia hídrica
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">Coste de Producción</CardTitle>
+              <CardDescription>Por hectárea, último año</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-baseline justify-between">
-                <div className="text-2xl font-bold">65.8%</div>
-                <div className="flex items-center text-green-600">
-                  <ArrowUp className="h-4 w-4 mr-1" />
-                  <span className="text-sm font-medium">8.3%</span>
-                </div>
+              <div className="text-2xl font-bold">
+                {cropType === 'maiz' ? '1,250€' : cropType === 'trigo' ? '980€' : '1,320€'}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Reducción en consumo de agua vs. referencias
+              <p className="text-xs text-muted-foreground">
+                <span className="text-red-500">↑ 5%</span> vs. año anterior
               </p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Salud de cultivo
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">Eficiencia de Recursos</CardTitle>
+              <CardDescription>Uso óptimo de recursos</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-baseline justify-between">
-                <div className="text-2xl font-bold">Buena</div>
-                <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-                  Óptimo
-                </Badge>
+              <div className="text-2xl font-bold">
+                {cropType === 'maiz' ? '83%' : cropType === 'trigo' ? '78%' : '89%'}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Basado en índices NDVI y análisis de suelo
+              <p className="text-xs text-muted-foreground">
+                <span className="text-emerald-500">↑ 7%</span> vs. año anterior
               </p>
             </CardContent>
           </Card>
         </div>
         
-        <div className="grid gap-6 md:grid-cols-2 mb-6">
-          {/* Main charts */}
-          <Card className="md:col-span-1">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <div>
-                <CardTitle>Rendimiento por parcela</CardTitle>
-                <CardDescription>
-                  Comparación de rendimiento actual vs proyección
-                </CardDescription>
-              </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <MoreHorizontal className="h-4 w-4" />
-                    <span className="sr-only">Abrir menú</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>Descargar CSV</DropdownMenuItem>
-                  <DropdownMenuItem>Ver detalles</DropdownMenuItem>
-                  <DropdownMenuItem>Compartir reporte</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Rendimiento Histórico de Cultivos</CardTitle>
+              <CardDescription>Toneladas por hectárea, último año</CardDescription>
             </CardHeader>
-            <CardContent className="pl-2">
-              <img 
-                src={mockChartUrl} 
-                alt="Gráfico de rendimiento por parcela" 
-                className="w-full h-[300px] object-cover"
-              />
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={cropYieldData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="maiz" 
+                      name="Maíz"
+                      stroke="#8884d8" 
+                      activeDot={{ r: 8 }}
+                      strokeWidth={cropType === 'maiz' ? 3 : 1}
+                      opacity={cropType === 'maiz' ? 1 : 0.4}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="trigo" 
+                      name="Trigo"
+                      stroke="#82ca9d" 
+                      strokeWidth={cropType === 'trigo' ? 3 : 1}
+                      opacity={cropType === 'trigo' ? 1 : 0.4}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="soja" 
+                      name="Soja"
+                      stroke="#ffc658" 
+                      strokeWidth={cropType === 'soja' ? 3 : 1}
+                      opacity={cropType === 'soja' ? 1 : 0.4}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
-          
-          <Card className="md:col-span-1">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <div>
-                <CardTitle>Uso de recursos</CardTitle>
-                <CardDescription>
-                  Consumo de agua y fertilizantes
-                </CardDescription>
-              </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <MoreHorizontal className="h-4 w-4" />
-                    <span className="sr-only">Abrir menú</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>Descargar CSV</DropdownMenuItem>
-                  <DropdownMenuItem>Ver detalles</DropdownMenuItem>
-                  <DropdownMenuItem>Compartir reporte</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </CardHeader>
-            <CardContent className="pl-2">
-              <img 
-                src={mockChartUrl} 
-                alt="Gráfico de uso de recursos" 
-                className="w-full h-[300px] object-cover"
-              />
-            </CardContent>
-          </Card>
-        </div>
-        
-        <div className="grid gap-6 md:grid-cols-3 mb-6">
-          <div className="md:col-span-2">
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle>Condiciones ambientales</CardTitle>
-                <CardDescription>
-                  Variables meteorológicas que afectan el rendimiento del cultivo
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="p-4 bg-muted/50 rounded-lg flex flex-col items-center">
-                    <Thermometer className="h-8 w-8 text-amber-500 mb-2" />
-                    <h3 className="font-medium">Temperatura</h3>
-                    <div className="mt-1 text-2xl font-bold">24.3°C</div>
-                    <p className="text-xs text-muted-foreground">Promedio semanal</p>
-                  </div>
-                  
-                  <div className="p-4 bg-muted/50 rounded-lg flex flex-col items-center">
-                    <Droplets className="h-8 w-8 text-blue-500 mb-2" />
-                    <h3 className="font-medium">Precipitación</h3>
-                    <div className="mt-1 text-2xl font-bold">42 mm</div>
-                    <p className="text-xs text-muted-foreground">Acumulado semanal</p>
-                  </div>
-                  
-                  <div className="p-4 bg-muted/50 rounded-lg flex flex-col items-center">
-                    <Wind className="h-8 w-8 text-gray-500 mb-2" />
-                    <h3 className="font-medium">Humedad</h3>
-                    <div className="mt-1 text-2xl font-bold">68%</div>
-                    <p className="text-xs text-muted-foreground">Promedio semanal</p>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button variant="ghost" size="sm" className="ml-auto">
-                  Ver historial completo
-                  <ChevronRight className="ml-1 h-4 w-4" />
-                </Button>
-              </CardFooter>
-            </Card>
-          </div>
           
           <Card>
             <CardHeader>
-              <CardTitle>Alertas y Notificaciones</CardTitle>
-              <CardDescription>
-                Eventos recientes que requieren atención
-              </CardDescription>
+              <CardTitle>Distribución de Humedad del Suelo</CardTitle>
+              <CardDescription>Por zona de cultivo</CardDescription>
             </CardHeader>
-            <CardContent className="p-0">
-              <ScrollArea className="h-[220px]">
-                <div className="px-4">
-                  <div className="py-3 border-b">
-                    <div className="flex items-start justify-between">
-                      <Badge variant="outline" className="bg-yellow-100 text-yellow-800 mb-1">
-                        Media
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">Hoy</span>
-                    </div>
-                    <p className="font-medium text-sm">Humedad de suelo por debajo del umbral</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Parcela #3 requiere riego adicional
-                    </p>
-                  </div>
-                  
-                  <div className="py-3 border-b">
-                    <div className="flex items-start justify-between">
-                      <Badge variant="outline" className="bg-red-100 text-red-800 mb-1">
-                        Alta
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">Ayer</span>
-                    </div>
-                    <p className="font-medium text-sm">Posible plaga detectada</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Signos de infestación en sector norte
-                    </p>
-                  </div>
-                  
-                  <div className="py-3">
-                    <div className="flex items-start justify-between">
-                      <Badge variant="outline" className="bg-green-100 text-green-800 mb-1">
-                        Baja
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">3 días atrás</span>
-                    </div>
-                    <p className="font-medium text-sm">Recordatorio de mantenimiento</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Sistema de irrigación requiere revisión mensual
-                    </p>
-                  </div>
-                </div>
-              </ScrollArea>
+            <CardContent>
+              <div className="h-[300px] flex justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={soilMoistureData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={110}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {soilMoistureData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
-            <CardFooter className="border-t px-4 py-2">
-              <Button variant="ghost" size="sm" className="w-full">
-                Ver todas las alertas
+          </Card>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Impacto del Clima en el Rendimiento</CardTitle>
+              <CardDescription>Relación entre temperatura, precipitación y rendimiento</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={weatherImpactData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis yAxisId="left" />
+                    <YAxis yAxisId="right" orientation="right" />
+                    <Tooltip />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="temperatura" 
+                      name="Temperatura (°C)"
+                      stroke="#ff7300" 
+                      yAxisId="left"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="precipitacion" 
+                      name="Precipitación (mm)"
+                      stroke="#387908" 
+                      yAxisId="right"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="rendimiento" 
+                      name="Rendimiento (%)"
+                      stroke="#3366cc" 
+                      yAxisId="right"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Utilización de Recursos</CardTitle>
+              <CardDescription>Comparación con niveles óptimos</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={resourceUsageData}
+                    margin={{
+                      top: 5,
+                      right: 30,
+                      left: 20,
+                      bottom: 5,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="optimo" name="Nivel Óptimo" fill="#8884d8" />
+                    <Bar dataKey="actual" name="Uso Actual" fill="#82ca9d" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <div className="grid grid-cols-1 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Análisis Predictivo</CardTitle>
+              <CardDescription>Resultados del modelo XGBoost para predicción de rendimiento</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="resultados">
+                <TabsList className="mb-4">
+                  <TabsTrigger value="resultados">Resultados</TabsTrigger>
+                  <TabsTrigger value="variables">Variables Importantes</TabsTrigger>
+                  <TabsTrigger value="metricas">Métricas del Modelo</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="resultados" className="space-y-4">
+                  <div className="flex flex-col md:flex-row gap-4">
+                    <div className="bg-muted/50 rounded-lg p-4 md:w-1/3 flex flex-col justify-between">
+                      <div>
+                        <h3 className="font-semibold">Predicción para próxima temporada</h3>
+                        <div className="mt-2">
+                          <p className="text-3xl font-bold text-primary">
+                            {cropType === 'maiz' ? '9.2' : cropType === 'trigo' ? '7.8' : '9.7'} ton/ha
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            <span className="text-emerald-500">↑ {cropType === 'maiz' ? '5.7%' : cropType === 'trigo' ? '8.3%' : '6.6%'}</span> vs. temporada actual
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-4">
+                        <Badge variant="outline">Confianza: Alta</Badge>
+                        <p className="text-xs text-muted-foreground mt-1">Basado en datos históricos de 5 años</p>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-muted/50 rounded-lg p-4 md:w-2/3">
+                      <h3 className="font-semibold">Recomendaciones</h3>
+                      <ul className="mt-2 space-y-2">
+                        <li className="flex items-start gap-2">
+                          <div className="mt-1 h-4 w-4 rounded-full bg-green-500"></div>
+                          <div>
+                            <p className="font-medium">Optimizar sistema de riego</p>
+                            <p className="text-sm text-muted-foreground">Implementar riego por goteo para reducir consumo de agua en un 23%</p>
+                          </div>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <div className="mt-1 h-4 w-4 rounded-full bg-blue-500"></div>
+                          <div>
+                            <p className="font-medium">Ajustar densidad de siembra</p>
+                            <p className="text-sm text-muted-foreground">Aumentar densidad de siembra en zonas A y C para maximizar rendimiento</p>
+                          </div>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <div className="mt-1 h-4 w-4 rounded-full bg-yellow-500"></div>
+                          <div>
+                            <p className="font-medium">Plan de fertilización personalizado</p>
+                            <p className="text-sm text-muted-foreground">Aplicar fertilizante rico en nitrógeno en etapas tempranas de crecimiento</p>
+                          </div>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="variables" className="space-y-4">
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left p-2">Variable</th>
+                          <th className="text-left p-2">Importancia (%)</th>
+                          <th className="text-left p-2">Relación</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b hover:bg-muted/50">
+                          <td className="p-2">Humedad del suelo</td>
+                          <td className="p-2">28.4%</td>
+                          <td className="p-2">Positiva</td>
+                        </tr>
+                        <tr className="border-b hover:bg-muted/50">
+                          <td className="p-2">Precipitación acumulada</td>
+                          <td className="p-2">21.7%</td>
+                          <td className="p-2">Curvilínea</td>
+                        </tr>
+                        <tr className="border-b hover:bg-muted/50">
+                          <td className="p-2">Temperatura media</td>
+                          <td className="p-2">17.3%</td>
+                          <td className="p-2">Curvilínea</td>
+                        </tr>
+                        <tr className="border-b hover:bg-muted/50">
+                          <td className="p-2">Aplicación de nitrógeno</td>
+                          <td className="p-2">14.8%</td>
+                          <td className="p-2">Positiva</td>
+                        </tr>
+                        <tr className="border-b hover:bg-muted/50">
+                          <td className="p-2">Densidad de siembra</td>
+                          <td className="p-2">10.2%</td>
+                          <td className="p-2">Curvilínea</td>
+                        </tr>
+                        <tr className="hover:bg-muted/50">
+                          <td className="p-2">Otros factores</td>
+                          <td className="p-2">7.6%</td>
+                          <td className="p-2">Varios</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="metricas" className="space-y-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-muted/50 p-4 rounded-lg">
+                      <p className="text-sm text-muted-foreground">RMSE</p>
+                      <p className="text-2xl font-bold">0.41 ton/ha</p>
+                    </div>
+                    <div className="bg-muted/50 p-4 rounded-lg">
+                      <p className="text-sm text-muted-foreground">R²</p>
+                      <p className="text-2xl font-bold">0.87</p>
+                    </div>
+                    <div className="bg-muted/50 p-4 rounded-lg">
+                      <p className="text-sm text-muted-foreground">MAE</p>
+                      <p className="text-2xl font-bold">0.32 ton/ha</p>
+                    </div>
+                    <div className="bg-muted/50 p-4 rounded-lg">
+                      <p className="text-sm text-muted-foreground">Desviación</p>
+                      <p className="text-2xl font-bold">±5.2%</p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-muted/30 p-4 rounded-lg mt-4">
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-medium">Rendimiento del modelo</h3>
+                      <Badge variant="outline">XGBoost</Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      El modelo muestra un alto rendimiento predictivo con un R² de 0.87, indicando que explica el 87% de la variabilidad en los datos de rendimiento de cultivos. El error cuadrático medio (RMSE) de 0.41 ton/ha es considerablemente bajo para este tipo de predicción.
+                    </p>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+            <CardFooter className="border-t pt-4 flex justify-between">
+              <Button variant="outline" asChild>
+                <a href="#">
+                  <FileSpreadsheet className="h-4 w-4 mr-2" />
+                  Descargar datos completos
+                </a>
               </Button>
-            </CardFooter>
-          </Card>
-        </div>
-        
-        <div className="mt-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recomendaciones</CardTitle>
-              <CardDescription>
-                Sugerencias basadas en análisis de datos para optimizar rendimiento
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-950/30">
-                <h3 className="font-medium mb-2 flex items-center gap-2">
-                  <Droplets className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  Optimización de riego
-                </h3>
-                <p className="text-sm mb-2">
-                  Según las condiciones meteorológicas previstas y la humedad actual del suelo,
-                  se recomienda reducir el riego en un 15% en las parcelas #2 y #5.
-                </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">
-                    Ahorro potencial: 2.500 litros de agua/semana
-                  </span>
-                  <Button size="sm" variant="ghost">Aplicar</Button>
-                </div>
-              </div>
-              
-              <div className="p-4 border rounded-lg bg-emerald-50 dark:bg-emerald-950/30">
-                <h3 className="font-medium mb-2 flex items-center gap-2">
-                  <BarChart className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                  Rotación de cultivos
-                </h3>
-                <p className="text-sm mb-2">
-                  Para la próxima temporada, considere rotar leguminosas en las parcelas #1 y #4
-                  para mejorar la fijación de nitrógeno y la salud del suelo.
-                </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">
-                    Mejora potencial: +18% en rendimiento futuro
-                  </span>
-                  <Button size="sm" variant="ghost">Detalles</Button>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="border-t">
-              <Button variant="outline" className="ml-auto" asChild>
-                <Link to="/implementation/agricultura">
-                  Ver plan de implementación
-                  <ArrowRight className="ml-2 h-4 w-4" />
+              <Button asChild>
+                <Link to="/ai-models">
+                  Ver todos los modelos
+                  <ChevronRight className="h-4 w-4 ml-2" />
                 </Link>
               </Button>
             </CardFooter>

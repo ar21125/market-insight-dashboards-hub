@@ -1,340 +1,430 @@
 
-import React, { useState } from 'react';
-import { AIModelInfo, MODEL_CATEGORIES, getCategoryForModel } from '@/types/aiModels';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { CheckCircle, ChevronDown, ChevronRight, BarChart3, Brain, FlaskConical, Database, ChartPie, Search } from 'lucide-react';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
+import { MODEL_CATEGORIES, AIModelInfo, getCategoryForModel } from '@/types/aiModels';
+import ModelSelectionFlow from './ModelSelectionFlow';
+import { ChartBar, Check, ChevronDown, ChevronRight, Search } from 'lucide-react';
+import { Input } from './ui/input';
+import { useToast } from '@/hooks/use-toast';
 
-// Sample AI models data
-const aiModels: AIModelInfo[] = [
+// Sample AI model data for visualization
+const AI_MODELS: AIModelInfo[] = [
   {
-    id: "randomForest",
-    name: "Random Forest",
-    type: "classification",
-    industry: "tecnologia",
-    applicableIndustries: ["tecnologia", "retail", "finanzas", "salud"],
-    description: "Modelo de ensamble que combina múltiples árboles de decisión para clasificación y regresión.",
-    use_cases: [
-      "Predicción de comportamiento de usuarios",
-      "Detección de fraude financiero",
-      "Segmentación de clientes",
-      "Diagnóstico médico asistido"
-    ],
-    benefits: [
-      "Alta precisión en problemas complejos",
-      "Robustez ante outliers y ruido",
-      "Manejo nativo de datos categóricos y numéricos",
-      "Cálculo de importancia de variables"
-    ],
-    implementation_difficulty: "intermedio",
-    data_requirements: [
-      "Conjunto de datos etiquetados",
-      "Variables predictoras estructuradas",
-      "Preferiblemente balanceado entre clases"
-    ],
+    id: 'randomForest',
+    name: 'Random Forest',
+    type: 'classification',
+    industry: 'tecnologia',
+    applicableIndustries: ['retail', 'finanzas', 'tecnologia', 'manufactura'],
+    description: 'Modelo de ensamble que combina múltiples árboles de decisión para clasificación y regresión.',
+    use_cases: ['Predicción de churn', 'Detección de fraude', 'Segmentación de clientes'],
+    benefits: ['Alta precisión', 'Manejo de datos complejos', 'Resistente al sobreajuste'],
+    implementation_difficulty: 'intermedio',
+    data_requirements: ['Datos estructurados', 'Variables categóricas y numéricas', 'Mínimo 1000 observaciones recomendadas'],
     typical_metrics: [
-      { name: "Precisión", description: "Porcentaje de predicciones correctas" },
-      { name: "Recall", description: "Capacidad para encontrar todos los casos positivos" },
-      { name: "F1-Score", description: "Media armónica entre precisión y recall" },
-      { name: "Área ROC", description: "Calidad de la separación entre clases" }
+      { name: 'Precisión', description: 'Mide la proporción de predicciones positivas correctas' },
+      { name: 'Recall', description: 'Mide la proporción de casos positivos reales que fueron identificados correctamente' },
+      { name: 'F1-Score', description: 'Media armónica de precisión y recall' }
     ]
   },
   {
-    id: "kmeans",
-    name: "K-Means",
-    type: "clustering",
-    industry: "retail",
-    applicableIndustries: ["retail", "tecnologia", "finanzas", "manufactura"],
-    description: "Algoritmo de agrupamiento que divide los datos en k clusters asignando cada punto al centroide más cercano.",
-    use_cases: [
-      "Segmentación de clientes",
-      "Detección de anomalías",
-      "Análisis de patrones de comportamiento",
-      "Compresión de imágenes"
-    ],
-    benefits: [
-      "Algoritmo simple e intuitivo",
-      "Escalable a grandes conjuntos de datos",
-      "Fácil interpretación de resultados",
-      "Rápida convergencia en la mayoría de casos"
-    ],
-    implementation_difficulty: "básico",
-    data_requirements: [
-      "Datos numéricos",
-      "Preferiblemente normalizados",
-      "Sin valores atípicos extremos"
-    ],
+    id: 'kmeans',
+    name: 'K-Means',
+    type: 'clustering',
+    industry: 'retail',
+    applicableIndustries: ['retail', 'finanzas', 'tecnologia'],
+    description: 'Algoritmo de agrupamiento que divide los datos en k clusters asignando cada punto al centroide más cercano.',
+    use_cases: ['Segmentación de clientes', 'Análisis de comportamiento de compra', 'Detección de anomalías'],
+    benefits: ['Fácil interpretación', 'Escalable', 'Eficiente computacionalmente'],
+    implementation_difficulty: 'básico',
+    data_requirements: ['Datos numéricos', 'Variables a escala similar', 'Sin valores atípicos extremos'],
     typical_metrics: [
-      { name: "Inercia", description: "Suma de distancias al cuadrado a centroides" },
-      { name: "Silueta", description: "Medida de cohesión interna vs separación externa" },
-      { name: "Davies-Bouldin", description: "Ratio de dispersión intra-cluster vs inter-cluster" }
+      { name: 'Inercia', description: 'Suma de distancias al cuadrado de cada punto a su centroide más cercano' },
+      { name: 'Silhouette Score', description: 'Mide qué tan similar es un objeto a su propio cluster en comparación con otros clusters' }
     ]
   },
   {
-    id: "sarima",
-    name: "SARIMA",
-    type: "time_series",
-    industry: "finanzas",
-    applicableIndustries: ["finanzas", "retail", "energia", "manufactura"],
-    description: "Modelo estadístico que captura dependencias temporales, tendencias y estacionalidad en series de tiempo.",
-    use_cases: [
-      "Pronóstico de ventas",
-      "Predicción de demanda energética",
-      "Análisis de indicadores financieros",
-      "Planificación de inventario"
-    ],
-    benefits: [
-      "Captura patrones estacionales complejos",
-      "Manejo efectivo de tendencias",
-      "Intervalos de confianza para predicciones",
-      "Interpretabilidad de componentes"
-    ],
-    implementation_difficulty: "avanzado",
-    data_requirements: [
-      "Serie temporal estacionaria (o transformable)",
-      "Sin cambios estructurales significativos",
-      "Datos a intervalos regulares",
-      "Suficiente historia para capturar estacionalidad"
-    ],
+    id: 'sarima',
+    name: 'SARIMA',
+    type: 'time_series',
+    industry: 'finanzas',
+    applicableIndustries: ['retail', 'finanzas', 'energia', 'agricultura'],
+    description: 'Modelo estadístico que captura dependencias temporales, tendencias y estacionalidad en series temporales.',
+    use_cases: ['Pronóstico de ventas', 'Predicción de demanda energética', 'Análisis de tendencias financieras'],
+    benefits: ['Captura estacionalidad', 'Manejo de tendencias', 'Intervalos de confianza'],
+    implementation_difficulty: 'avanzado',
+    data_requirements: ['Series temporales con frecuencia constante', 'Historia suficiente para identificar patrones estacionales', 'Estacionariedad'],
     typical_metrics: [
-      { name: "RMSE", description: "Error cuadrático medio de predicciones" },
-      { name: "MAPE", description: "Error porcentual absoluto medio" },
-      { name: "AIC/BIC", description: "Criterios de información para selección de modelo" }
+      { name: 'RMSE', description: 'Raíz del error cuadrático medio' },
+      { name: 'MAPE', description: 'Error porcentual absoluto medio' },
+      { name: 'AIC/BIC', description: 'Criterios de información para selección de modelos' }
     ]
   },
   {
-    id: "nlp_sentiment",
-    name: "Análisis de Sentimiento",
-    type: "nlp",
-    industry: "tecnologia",
-    applicableIndustries: ["tecnologia", "retail", "servicios", "turismo", "educacion"],
-    description: "Técnica de procesamiento de lenguaje natural que identifica y extrae opiniones subjetivas de textos.",
-    use_cases: [
-      "Análisis de feedback de clientes",
-      "Monitoreo de reputación de marca",
-      "Análisis de tendencias en redes sociales",
-      "Categorización de reseñas de productos"
-    ],
-    benefits: [
-      "Procesamiento automático de grandes volúmenes de texto",
-      "Identificación de tendencias en opiniones",
-      "Detección de problemas emergentes",
-      "Medición de impacto de campañas"
-    ],
-    implementation_difficulty: "avanzado",
-    data_requirements: [
-      "Corpus de textos en el idioma objetivo",
-      "Idealmente con etiquetas de sentimiento para entrenamiento",
-      "Textos representativos del dominio a analizar"
-    ],
+    id: 'sentiment_analysis',
+    name: 'Análisis de Sentimiento',
+    type: 'nlp',
+    industry: 'retail',
+    applicableIndustries: ['retail', 'tecnologia', 'servicios'],
+    description: 'Técnica de procesamiento de lenguaje natural que identifica y extrae opiniones subjetivas de textos.',
+    use_cases: ['Análisis de comentarios de clientes', 'Monitoreo de redes sociales', 'Estudio de satisfacción'],
+    benefits: ['Comprensión de la percepción del cliente', 'Identificación de problemas emergentes', 'Medición de impacto de campañas'],
+    implementation_difficulty: 'avanzado',
+    data_requirements: ['Textos en lenguaje natural', 'Corpus suficientemente grande', 'Preferiblemente con etiquetas de sentimiento'],
     typical_metrics: [
-      { name: "Precisión", description: "Exactitud en la clasificación de sentimientos" },
-      { name: "Recall", description: "Capacidad para detectar todos los sentimientos relevantes" },
-      { name: "F1-Score", description: "Balance entre precisión y recall" }
+      { name: 'Precisión', description: 'Porcentaje de predicciones de sentimiento correctas' },
+      { name: 'F1-Score', description: 'Balance entre precisión y exhaustividad' }
     ]
   },
   {
-    id: "topic_modeling",
-    name: "Modelado de Tópicos",
-    type: "nlp",
-    industry: "educacion",
-    applicableIndustries: ["educacion", "tecnologia", "medios", "investigacion"],
-    description: "Técnica estadística que descubre temas abstractos presentes en una colección de documentos.",
-    use_cases: [
-      "Análisis de contenidos educativos",
-      "Descubrimiento de tendencias en investigación",
-      "Categorización automática de documentos",
-      "Análisis de feedback de estudiantes"
-    ],
-    benefits: [
-      "Descubrimiento de estructura temática no evidente",
-      "Procesamiento de grandes volúmenes de texto",
-      "Organización automática de información",
-      "Identificación de relaciones entre conceptos"
-    ],
-    implementation_difficulty: "avanzado",
-    data_requirements: [
-      "Corpus de documentos de texto",
-      "Preprocesamiento de texto (tokenización, eliminación de stopwords)",
-      "Cantidad suficiente de documentos para identificar patrones"
-    ],
+    id: 'topic_modeling',
+    name: 'Modelado de Tópicos',
+    type: 'nlp',
+    industry: 'educacion',
+    applicableIndustries: ['educacion', 'tecnologia', 'medios'],
+    description: 'Técnica estadística que descubre temas abstractos presentes en una colección de documentos.',
+    use_cases: ['Análisis de contenido educativo', 'Organización de documentos', 'Descubrimiento de tendencias'],
+    benefits: ['Descubrimiento no supervisado de temas', 'Reducción de dimensionalidad', 'Organización automática de información'],
+    implementation_difficulty: 'avanzado',
+    data_requirements: ['Colección de documentos de texto', 'Preprocesamiento de texto', 'Vocabulario definido'],
     typical_metrics: [
-      { name: "Coherencia", description: "Medida de interpretabilidad de los tópicos" },
-      { name: "Perplejidad", description: "Evaluación de capacidad predictiva del modelo" }
+      { name: 'Coherencia de tópicos', description: 'Mide la interpretabilidad de los temas descubiertos' },
+      { name: 'Perplejidad', description: 'Evalúa qué tan bien el modelo predice una muestra' }
+    ]
+  },
+  {
+    id: 'linear_regression',
+    name: 'Regresión Lineal',
+    type: 'regression',
+    industry: 'finanzas',
+    applicableIndustries: ['finanzas', 'retail', 'manufactura', 'agricultura', 'energia', 'salud'],
+    description: 'Modelo estadístico que examina la relación lineal entre una variable dependiente y una o más variables independientes.',
+    use_cases: ['Predicción de ventas', 'Análisis de factores de precio', 'Estimación de rendimiento de cultivos', 'Predicción de consumo energético'],
+    benefits: ['Fácil interpretación', 'Implementación simple', 'Resultados rápidos'],
+    implementation_difficulty: 'básico',
+    data_requirements: ['Variables numéricas relacionadas linealmente', 'Independencia de observaciones', 'Distribución normal de residuos'],
+    typical_metrics: [
+      { name: 'R²', description: 'Coeficiente de determinación que mide la bondad del ajuste' },
+      { name: 'RMSE', description: 'Raíz del error cuadrático medio' }
+    ]
+  },
+  {
+    id: 'prophet',
+    name: 'Prophet (Facebook)',
+    type: 'time_series',
+    industry: 'energia',
+    applicableIndustries: ['energia', 'retail', 'finanzas', 'agricultura'],
+    description: 'Modelo de forecasting para series temporales desarrollado por Facebook que maneja estacionalidades múltiples y datos faltantes.',
+    use_cases: ['Predicción de demanda energética', 'Estimación de producción de energías renovables', 'Pronóstico de cosechas'],
+    benefits: ['Manejo robusto de datos faltantes', 'Captura múltiples estacionalidades', 'Detección automática de cambios de tendencia'],
+    implementation_difficulty: 'intermedio',
+    data_requirements: ['Series temporales con frecuencia definida', 'Datos de fecha/hora y valor', 'Preferiblemente sin demasiados ceros'],
+    typical_metrics: [
+      { name: 'MAPE', description: 'Error porcentual absoluto medio' },
+      { name: 'RMSE', description: 'Raíz del error cuadrático medio' }
+    ]
+  },
+  {
+    id: 'anova',
+    name: 'ANOVA',
+    type: 'statistical',
+    industry: 'agricultura',
+    applicableIndustries: ['agricultura', 'salud', 'educacion'],
+    description: 'Análisis de varianza para comparar medias entre múltiples grupos y determinar si existen diferencias significativas.',
+    use_cases: ['Comparación de rendimiento entre cultivos', 'Evaluación de métodos de riego', 'Análisis de efectividad de fertilizantes'],
+    benefits: ['Comparaciones múltiples', 'Base estadística sólida', 'Fácil interpretación'],
+    implementation_difficulty: 'básico',
+    data_requirements: ['Variable dependiente continua', 'Una o más variables independientes categóricas', 'Distribución normal'],
+    typical_metrics: [
+      { name: 'Valor F', description: 'Estadístico que compara la varianza entre grupos con la varianza dentro de grupos' },
+      { name: 'Valor p', description: 'Probabilidad de obtener un resultado igual o más extremo asumiendo que la hipótesis nula es cierta' }
+    ]
+  },
+  {
+    id: 'xgboost',
+    name: 'XGBoost',
+    type: 'classification',
+    industry: 'agricultura',
+    applicableIndustries: ['agricultura', 'finanzas', 'manufactura', 'salud'],
+    description: 'Algoritmo de gradient boosting optimizado para rendimiento y eficiencia, efectivo para clasificación y regresión.',
+    use_cases: ['Predicción de rendimiento de cultivos', 'Detección de plagas', 'Optimización de procesos agrícolas'],
+    benefits: ['Alta precisión', 'Manejo de datos desbalanceados', 'Regularización integrada'],
+    implementation_difficulty: 'intermedio',
+    data_requirements: ['Datos estructurados', 'Variables numéricas y categóricas', 'Preferiblemente sin valores faltantes'],
+    typical_metrics: [
+      { name: 'Precisión', description: 'Porcentaje de predicciones correctas' },
+      { name: 'AUC-ROC', description: 'Área bajo la curva ROC' },
+      { name: 'Importancia de características', description: 'Ranking de las variables más predictivas' }
+    ]
+  },
+  {
+    id: 'chi_square',
+    name: 'Chi Cuadrado',
+    type: 'statistical',
+    industry: 'salud',
+    applicableIndustries: ['salud', 'educacion', 'retail'],
+    description: 'Test estadístico utilizado para determinar si existe una asociación significativa entre variables categóricas.',
+    use_cases: ['Análisis de asociación entre tratamientos y resultados', 'Estudio de factores de riesgo', 'Perfiles de consumidor'],
+    benefits: ['Simple de implementar', 'Interpretación directa', 'Adecuado para datos categóricos'],
+    implementation_difficulty: 'básico',
+    data_requirements: ['Datos categóricos', 'Tamaño de muestra suficiente', 'Observaciones independientes'],
+    typical_metrics: [
+      { name: 'Estadístico Chi²', description: 'Medida de discrepancia entre frecuencias observadas y esperadas' },
+      { name: 'Valor p', description: 'Probabilidad de obtener un resultado igual o más extremo asumiendo independencia' }
     ]
   }
 ];
 
-interface AIModelCatalogProps {
-  industry?: string;
-  onModelSelect?: (model: AIModelInfo) => void;
-}
+const AIModelCatalog: React.FC = () => {
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [expandedModels, setExpandedModels] = useState<string[]>([]);
+  const [models, setModels] = useState<AIModelInfo[]>(AI_MODELS);
+  const { toast } = useToast();
 
-const AIModelCatalog: React.FC<AIModelCatalogProps> = ({ 
-  industry, 
-  onModelSelect 
-}) => {
-  const [activeCategory, setActiveCategory] = useState<string>("all");
-  const [expandedModel, setExpandedModel] = useState<string | null>(null);
-  
-  const filteredModels = industry 
-    ? aiModels.filter(model => 
-        model.industry === industry || 
-        model.applicableIndustries?.includes(industry)
-      )
-    : aiModels;
+  // Filtrar modelos basados en categoría y término de búsqueda
+  useEffect(() => {
+    let filtered = [...AI_MODELS];
     
-  const categoryModels = activeCategory === 'all' 
-    ? filteredModels 
-    : filteredModels.filter(model => getCategoryForModel(model.id)?.id === activeCategory);
-
-  const getCategoryIcon = (categoryId: string) => {
-    switch(categoryId) {
-      case 'time-series': return <ChartPie className="h-4 w-4" />;
-      case 'classification': return <CheckCircle className="h-4 w-4" />;
-      case 'clustering': return <Database className="h-4 w-4" />;
-      case 'deep-learning': return <Brain className="h-4 w-4" />;
-      case 'nlp': return <Search className="h-4 w-4" />;
-      default: return <BarChart3 className="h-4 w-4" />;
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(model => {
+        const category = getCategoryForModel(model.id);
+        return category && category.id === selectedCategory;
+      });
     }
+    
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(model => 
+        model.name.toLowerCase().includes(term) || 
+        model.description.toLowerCase().includes(term) ||
+        model.industry.toLowerCase().includes(term) ||
+        (model.applicableIndustries && model.applicableIndustries.some(ind => ind.toLowerCase().includes(term)))
+      );
+    }
+    
+    setModels(filtered);
+  }, [selectedCategory, searchTerm]);
+
+  const toggleModelExpanded = (modelId: string) => {
+    setExpandedModels(prev => 
+      prev.includes(modelId) 
+        ? prev.filter(id => id !== modelId) 
+        : [...prev, modelId]
+    );
   };
-  
+
   const getDifficultyColor = (difficulty: string) => {
     switch(difficulty) {
-      case 'básico': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'intermedio': return 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300';
-      case 'avanzado': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+      case 'básico': return 'bg-green-100 text-green-800';
+      case 'intermedio': return 'bg-yellow-100 text-yellow-800';
+      case 'avanzado': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   return (
-    <div className="w-full">
-      <Tabs defaultValue="all" onValueChange={setActiveCategory} className="w-full">
-        <div className="mb-6">
-          <h3 className="text-lg font-medium mb-2">Categorías de Modelos</h3>
-          <ScrollArea className="w-full whitespace-nowrap pb-3">
-            <TabsList className="h-9 grid-cols-auto">
-              <TabsTrigger value="all" className="h-8">
-                Todos los Modelos
-              </TabsTrigger>
-              {MODEL_CATEGORIES.map(category => (
-                <TabsTrigger key={category.id} value={category.id} className="h-8">
-                  <span className="flex items-center gap-2">
-                    {getCategoryIcon(category.id)}
-                    {category.name}
-                  </span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </ScrollArea>
-        </div>
-        
-        <TabsContent value={activeCategory} className="mt-0">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {categoryModels.map((model) => (
-              <Card key={model.id} className="overflow-hidden hover:border-primary/50 transition-colors">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {getCategoryIcon(getCategoryForModel(model.id)?.id || '')}
-                      <CardTitle className="text-lg">{model.name}</CardTitle>
-                    </div>
-                    <Badge className={`${getDifficultyColor(model.implementation_difficulty)}`}>
-                      {model.implementation_difficulty}
-                    </Badge>
-                  </div>
-                  <CardDescription className="mt-2 line-clamp-2">{model.description}</CardDescription>
-                </CardHeader>
-                
-                <CardContent className="pb-2">
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {model.applicableIndustries?.slice(0, 3).map(ind => (
-                      <Badge key={ind} variant="outline" className="text-xs">
-                        {ind}
-                      </Badge>
-                    ))}
-                    {model.applicableIndustries && model.applicableIndustries.length > 3 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{model.applicableIndustries.length - 3}
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  <Accordion
-                    type="single"
-                    collapsible
-                    value={expandedModel === model.id ? 'details' : undefined}
-                    onValueChange={(value) => setExpandedModel(value === 'details' ? model.id : null)}
-                  >
-                    <AccordionItem value="details" className="border-0">
-                      <AccordionTrigger className="py-1 text-sm font-medium text-primary">
-                        {expandedModel === model.id ? 'Menos detalles' : 'Más detalles'}
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="space-y-3 text-sm">
-                          <div>
-                            <h4 className="font-medium mb-1">Casos de uso:</h4>
-                            <ul className="list-disc list-inside">
-                              {model.use_cases.slice(0, 3).map((useCase, idx) => (
-                                <li key={idx}>{useCase}</li>
-                              ))}
-                            </ul>
-                          </div>
-                          
-                          <div>
-                            <h4 className="font-medium mb-1">Beneficios:</h4>
-                            <ul className="list-disc list-inside">
-                              {model.benefits.slice(0, 3).map((benefit, idx) => (
-                                <li key={idx}>{benefit}</li>
-                              ))}
-                            </ul>
-                          </div>
-                          
-                          <div>
-                            <h4 className="font-medium mb-1">Métricas típicas:</h4>
-                            <ul className="list-disc list-inside">
-                              {model.typical_metrics.slice(0, 2).map((metric, idx) => (
-                                <li key={idx}><span className="font-medium">{metric.name}:</span> {metric.description}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
-                </CardContent>
-                
-                <CardFooter className="pt-0">
-                  <Button 
-                    variant="default" 
-                    size="sm" 
-                    className="w-full mt-2"
-                    onClick={() => onModelSelect && onModelSelect(model)}
-                  >
-                    Seleccionar modelo
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
+    <div className="container mx-auto p-4 pb-20">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Modelos de Inteligencia Artificial</h1>
+        <p className="text-muted-foreground">
+          Explora nuestra biblioteca de modelos de IA y aprendizaje automático para distintas industrias y casos de uso.
+        </p>
+      </div>
+      
+      <div className="mb-8 flex flex-col md:flex-row gap-4">
+        <div className="w-full md:w-2/3">
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar modelos por nombre, descripción o industria..."
+              className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
+        </div>
+      </div>
+
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold mb-4">Categorías de Modelos</h2>
+        <Tabs 
+          defaultValue="all" 
+          value={selectedCategory}
+          onValueChange={setSelectedCategory}
+          className="w-full"
+        >
+          <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 mb-4 w-full overflow-x-auto">
+            <TabsTrigger value="all">Todos los Modelos</TabsTrigger>
+            {MODEL_CATEGORIES.map(category => (
+              <TabsTrigger key={category.id} value={category.id}>
+                {category.name}
+              </TabsTrigger>
+            ))}
+          </TabsList>
           
-          {categoryModels.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No se encontraron modelos para esta categoría.</p>
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+          <TabsContent value={selectedCategory}>
+            {models.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+                {models.map(model => (
+                  <Card key={model.id} className="overflow-hidden">
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="flex items-center">
+                            {model.name}
+                          </CardTitle>
+                          <CardDescription className="mt-1">
+                            {model.description}
+                          </CardDescription>
+                        </div>
+                        {model.implementation_difficulty && (
+                          <Badge className={`${getDifficultyColor(model.implementation_difficulty)} ml-2`}>
+                            {model.implementation_difficulty}
+                          </Badge>
+                        )}
+                      </div>
+                    </CardHeader>
+                    
+                    <CardContent>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {model.applicableIndustries && model.applicableIndustries.map((industry, idx) => (
+                          <Badge key={idx} variant="outline">
+                            {industry}
+                          </Badge>
+                        ))}
+                        {model.type && (
+                          <Badge variant="secondary">
+                            {model.type}
+                          </Badge>
+                        )}
+                      </div>
+
+                      {expandedModels.includes(model.id) && (
+                        <div className="mt-4 space-y-4">
+                          {model.use_cases && model.use_cases.length > 0 && (
+                            <div>
+                              <h4 className="font-medium text-sm mb-1">Casos de uso:</h4>
+                              <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                                {model.use_cases.map((useCase, idx) => (
+                                  <li key={idx}>{useCase}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          {model.benefits && model.benefits.length > 0 && (
+                            <div>
+                              <h4 className="font-medium text-sm mb-1">Beneficios:</h4>
+                              <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                                {model.benefits.map((benefit, idx) => (
+                                  <li key={idx}>{benefit}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          {model.data_requirements && model.data_requirements.length > 0 && (
+                            <div>
+                              <h4 className="font-medium text-sm mb-1">Requisitos de datos:</h4>
+                              <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                                {model.data_requirements.map((req, idx) => (
+                                  <li key={idx}>{req}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      <Button 
+                        variant="ghost" 
+                        className="p-0 h-auto mt-2"
+                        onClick={() => toggleModelExpanded(model.id)}
+                      >
+                        {expandedModels.includes(model.id) ? (
+                          <span className="flex items-center text-sm text-primary">
+                            Menos detalles <ChevronDown className="ml-1 h-4 w-4" />
+                          </span>
+                        ) : (
+                          <span className="flex items-center text-sm text-primary">
+                            Más detalles <ChevronRight className="ml-1 h-4 w-4" />
+                          </span>
+                        )}
+                      </Button>
+                    </CardContent>
+                    
+                    <CardFooter>
+                      <ModelSelectionFlow 
+                        model={model}
+                        trigger={
+                          <Button className="w-full">
+                            Seleccionar modelo
+                          </Button>
+                        }
+                        onComplete={() => {
+                          toast({
+                            title: "Modelo seleccionado",
+                            description: `Has seleccionado el modelo ${model.name} para tu análisis.`,
+                          });
+                        }}
+                      />
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16 border rounded-lg">
+                <ChartBar className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+                <h3 className="text-xl font-medium mb-1">No se encontraron modelos</h3>
+                <p className="text-muted-foreground">
+                  No se encontraron modelos que coincidan con tus criterios. Intenta ajustar tu búsqueda.
+                </p>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      <div className="mt-8 border-t pt-8">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">¿No encuentras lo que buscas?</h2>
+          <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+            Nuestro equipo puede ayudarte a implementar soluciones personalizadas para tus necesidades específicas.
+          </p>
+          <div className="flex justify-center gap-4 flex-wrap">
+            <Button asChild size="lg">
+              <a href="/contact/general">Contactar a un experto</a>
+            </Button>
+            <Button variant="outline" size="lg" asChild>
+              <a href="https://wa.me/123456789?text=Me%20interesa%20saber%20más%20sobre%20sus%20modelos%20de%20analítica" target="_blank" rel="noopener noreferrer">
+                <div className="flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="mr-2"
+                  >
+                    <path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21" />
+                    <path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1Z" />
+                    <path d="M14 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1Z" />
+                    <path d="M9.5 13.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 0-1h-4a.5.5 0 0 0-.5.5Z" />
+                  </svg>
+                  Consultar por WhatsApp
+                </div>
+              </a>
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
