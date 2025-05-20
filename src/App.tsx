@@ -8,6 +8,8 @@ import AIModelsPage from "./pages/AIModelsPage";
 import AnalysisCapabilitiesPage from "./pages/AnalysisCapabilitiesPage";
 import AgricultureImplementation from "./pages/AgricultureImplementation";
 import EnergyImplementation from "./pages/EnergyImplementation";
+import AgricultureDashboard from "./pages/Dashboard/AgricultureDashboard";
+import EnergyDashboard from "./pages/Dashboard/EnergyDashboard";
 import ContactPage from "./pages/ContactPage";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -18,6 +20,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/dashboard/:industry" element={<Dashboard />} />
+          <Route path="/dashboard/agricultura" element={<AgricultureDashboard />} />
+          <Route path="/dashboard/energia" element={<EnergyDashboard />} />
           <Route path="/industries" element={<Industries />} />
           <Route path="/analysis-capabilities" element={<AnalysisCapabilitiesPage />} />
           <Route path="/ai-models" element={<AIModelsPage />} />

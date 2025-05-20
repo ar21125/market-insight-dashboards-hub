@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Card, 
@@ -35,7 +34,7 @@ const SAMPLE_MODELS: AIModelInfo[] = [
     name: 'K-Means Clustering',
     type: 'clustering',
     industry: 'cross-industry',
-    applicableIndustries: ['retail', 'finanzas', 'salud', 'educacion', 'tecnologia'],
+    applicableIndustries: ['retail', 'finanzas', 'salud', 'educacion', 'tecnologia', 'agricultura', 'energia'],
     description: 'Algoritmo de clustering que agrupa datos según su similitud en un número específico de clusters.',
     use_cases: [
       'Segmentación de clientes',
@@ -81,7 +80,7 @@ const SAMPLE_MODELS: AIModelInfo[] = [
     name: 'ARIMA',
     type: 'time-series',
     industry: 'cross-industry',
-    applicableIndustries: ['retail', 'finanzas', 'salud', 'manufactura'],
+    applicableIndustries: ['retail', 'finanzas', 'salud', 'manufactura', 'agricultura', 'energia'],
     description: 'Modelo estadístico para análisis y predicción de series temporales.',
     use_cases: [
       'Predicción de ventas',
@@ -134,7 +133,7 @@ const SAMPLE_MODELS: AIModelInfo[] = [
     name: 'Random Forest',
     type: 'classification',
     industry: 'cross-industry',
-    applicableIndustries: ['retail', 'finanzas', 'salud', 'educacion', 'tecnologia'],
+    applicableIndustries: ['retail', 'finanzas', 'salud', 'educacion', 'tecnologia', 'agricultura', 'energia'],
     description: 'Algoritmo de ensemble learning que combina múltiples árboles de decisión para clasificación robusta.',
     use_cases: [
       'Detección de fraude',
@@ -190,7 +189,7 @@ const SAMPLE_MODELS: AIModelInfo[] = [
     name: 'Regresión Lineal',
     type: 'regression',
     industry: 'cross-industry',
-    applicableIndustries: ['retail', 'finanzas', 'salud', 'educacion', 'manufactura'],
+    applicableIndustries: ['retail', 'finanzas', 'salud', 'educacion', 'manufactura', 'agricultura', 'energia'],
     description: 'Modelo estadístico que establece relación lineal entre variables dependientes e independientes.',
     use_cases: [
       'Predicción de ventas',
@@ -227,6 +226,197 @@ const SAMPLE_MODELS: AIModelInfo[] = [
       {
         name: 'normalize',
         description: 'Normalizar variables antes del ajuste',
+        type: 'boolean',
+        required: false,
+        default: false
+      }
+    ]
+  },
+  {
+    id: 'anova',
+    name: 'ANOVA',
+    type: 'statistical',
+    industry: 'cross-industry',
+    applicableIndustries: ['salud', 'agricultura', 'manufactura', 'educacion'],
+    description: 'Análisis de varianza para comparar medias entre grupos y evaluar diferencias estadísticamente significativas.',
+    use_cases: [
+      'Comparación de efectividad de tratamientos',
+      'Análisis de factores influyentes en rendimientos',
+      'Estudios experimentales con múltiples grupos',
+      'Validación de hipótesis científicas'
+    ],
+    benefits: [
+      'Identificación rigurosa de diferencias significativas',
+      'Base para diseño experimental',
+      'Cuantificación de efectos de variables categóricas',
+      'Respaldo estadístico para toma de decisiones'
+    ],
+    implementation_difficulty: 'intermedio',
+    data_requirements: [
+      'Variable dependiente continua',
+      'Variables independientes categóricas (factores)',
+      'Normalidad aproximada de residuos',
+      'Homogeneidad de varianzas'
+    ],
+    typical_metrics: [
+      { name: 'F-statistic', description: 'Ratio entre varianza entre grupos y varianza dentro de grupos' },
+      { name: 'p-value', description: 'Probabilidad de obtener resultados tan extremos bajo hipótesis nula' },
+      { name: 'Eta-squared', description: 'Medida de tamaño del efecto' }
+    ],
+    parameters: [
+      {
+        name: 'tipo',
+        description: 'Tipo de ANOVA a realizar',
+        type: 'categorical',
+        required: true,
+        default: 'one-way',
+        options: ['one-way', 'two-way', 'repeated-measures', 'mixed']
+      },
+      {
+        name: 'post_hoc',
+        description: 'Test post-hoc para comparaciones',
+        type: 'categorical',
+        required: false,
+        default: 'tukey',
+        options: ['tukey', 'bonferroni', 'scheffe', 'fisher-lsd']
+      }
+    ]
+  },
+  {
+    id: 'chi_square',
+    name: 'Test Chi-Cuadrado',
+    type: 'statistical',
+    industry: 'cross-industry',
+    applicableIndustries: ['salud', 'retail', 'finanzas', 'educacion'],
+    description: 'Análisis estadístico para evaluar la independencia entre variables categóricas.',
+    use_cases: [
+      'Análisis de asociación entre características',
+      'Evaluación de distribuciones observadas vs esperadas',
+      'Verificación de homogeneidad de proporciones',
+      'Validación de hipótesis en estudios demográficos'
+    ],
+    benefits: [
+      'Simple de implementar e interpretar',
+      'No requiere supuestos de normalidad',
+      'Aplicable a múltiples variables categóricas',
+      'Medidas de tamaño de efecto asociadas'
+    ],
+    implementation_difficulty: 'básico',
+    data_requirements: [
+      'Datos categóricos',
+      'Conteos o frecuencias suficientes en cada celda',
+      'Muestras independientes'
+    ],
+    typical_metrics: [
+      { name: 'Estadístico Chi-cuadrado', description: 'Suma de diferencias al cuadrado entre valores observados y esperados' },
+      { name: 'p-value', description: 'Probabilidad de obtener el estadístico bajo independencia' },
+      { name: 'V de Cramér', description: 'Medida de asociación normalizada' }
+    ],
+    parameters: [
+      {
+        name: 'correction',
+        description: 'Corrección de continuidad para tablas 2x2',
+        type: 'boolean',
+        required: false,
+        default: true
+      }
+    ]
+  },
+  {
+    id: 'ridge_regression',
+    name: 'Regresión Ridge',
+    type: 'regression',
+    industry: 'cross-industry',
+    applicableIndustries: ['finanzas', 'energia', 'tecnologia', 'manufactura'],
+    description: 'Método de regresión lineal regularizada que penaliza el tamaño de los coeficientes para reducir el sobreajuste.',
+    use_cases: [
+      'Predicción con muchas variables correlacionadas',
+      'Modelado de precios en mercados energéticos',
+      'Pronósticos financieros estables',
+      'Análisis de factores con multicolinealidad'
+    ],
+    benefits: [
+      'Reduce sobreajuste en datos con muchas dimensiones',
+      'Maneja variables correlacionadas mejor que la regresión lineal',
+      'Estabiliza coeficientes para interpretación más confiable',
+      'Mejora generalización en nuevos datos'
+    ],
+    implementation_difficulty: 'intermedio',
+    data_requirements: [
+      'Variables predictoras preferiblemente escaladas',
+      'Variable objetivo continua',
+      'Datos con posible multicolinealidad'
+    ],
+    typical_metrics: [
+      { name: 'MSE/RMSE', description: 'Error cuadrático medio (regularizado)' },
+      { name: 'R² ajustado', description: 'Coeficiente de determinación que considera regularización' },
+      { name: 'Lambda óptimo', description: 'Parámetro de regularización seleccionado' }
+    ],
+    parameters: [
+      {
+        name: 'alpha',
+        description: 'Fuerza de regularización',
+        type: 'numeric',
+        required: true,
+        default: 1.0
+      },
+      {
+        name: 'fit_intercept',
+        description: 'Incluir término independiente',
+        type: 'boolean',
+        required: false,
+        default: true
+      },
+      {
+        name: 'normalize',
+        description: 'Normalizar datos antes del ajuste',
+        type: 'boolean',
+        required: false,
+        default: false
+      }
+    ]
+  },
+  {
+    id: 'polynomial_regression',
+    name: 'Regresión Polinómica',
+    type: 'regression',
+    industry: 'cross-industry',
+    applicableIndustries: ['agricultura', 'manufactura', 'energia', 'finanzas'],
+    description: 'Extensión de la regresión lineal que modela relaciones no lineales mediante términos polinómicos.',
+    use_cases: [
+      'Modelado de rendimientos agrícolas en función de factores ambientales',
+      'Predicción de consumo energético según variables estacionales',
+      'Análisis de relaciones no lineales precio-demanda',
+      'Modelado de curvas de crecimiento'
+    ],
+    benefits: [
+      'Captura relaciones no lineales que los modelos lineales no pueden',
+      'Mantiene la interpretabilidad de coeficientes',
+      'Flexibilidad para modelar distintos niveles de complejidad',
+      'Implementación sencilla basada en regresión lineal'
+    ],
+    implementation_difficulty: 'intermedio',
+    data_requirements: [
+      'Variables independientes continuas',
+      'Variable dependiente continua',
+      'Relaciones no lineales en los datos'
+    ],
+    typical_metrics: [
+      { name: 'R²', description: 'Coeficiente de determinación' },
+      { name: 'RMSE', description: 'Raíz del error cuadrático medio' },
+      { name: 'AIC/BIC', description: 'Criterios de información para selección de grado óptimo' }
+    ],
+    parameters: [
+      {
+        name: 'degree',
+        description: 'Grado del polinomio',
+        type: 'numeric',
+        required: true,
+        default: 2
+      },
+      {
+        name: 'interaction_only',
+        description: 'Incluir solo términos de interacción',
         type: 'boolean',
         required: false,
         default: false
@@ -537,6 +727,12 @@ const AIModelCatalog: React.FC = () => {
         return modelCategory?.id === selectedCategory;
       });
 
+  // Added function to display category description in popover
+  const getCategoryDescription = (categoryId: string): string => {
+    const category = MODEL_CATEGORIES.find(cat => cat.id === categoryId);
+    return category ? category.description : '';
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -554,8 +750,62 @@ const AIModelCatalog: React.FC = () => {
         <TabsList className="mb-4 flex overflow-x-auto pb-1">
           <TabsTrigger value="all">Todos</TabsTrigger>
           {MODEL_CATEGORIES.map(category => (
-            <TabsTrigger key={category.id} value={category.id}>
+            <TabsTrigger key={category.id} value={category.id} className="relative group">
               {category.name}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-5 w-5 absolute -right-2 -top-2 opacity-0 group-hover:opacity-100 bg-background border rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                    <span className="sr-only">Info</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80">
+                  <div className="space-y-2">
+                    <h4 className="font-medium">{category.name}</h4>
+                    <p className="text-sm text-muted-foreground">{category.description}</p>
+                    <div className="text-sm">
+                      <span className="font-medium">Aplicaciones principales:</span> 
+                      <ul className="mt-1 list-disc list-inside">
+                        {category.id === 'time-series' && (
+                          <>
+                            <li>Predicción de demanda y ventas</li>
+                            <li>Análisis de tendencias económicas</li>
+                            <li>Detección de anomalías temporales</li>
+                          </>
+                        )}
+                        {category.id === 'classification' && (
+                          <>
+                            <li>Detección de fraudes</li>
+                            <li>Diagnóstico médico</li>
+                            <li>Segmentación de clientes</li>
+                          </>
+                        )}
+                        {category.id === 'clustering' && (
+                          <>
+                            <li>Segmentación de mercados</li>
+                            <li>Agrupación de documentos</li>
+                            <li>Detección de anomalías</li>
+                          </>
+                        )}
+                        {category.id === 'statistical' && (
+                          <>
+                            <li>Validación de hipótesis científicas</li>
+                            <li>Análisis de resultados experimentales</li>
+                            <li>Estudios comparativos entre grupos</li>
+                          </>
+                        )}
+                        {category.id === 'regression' && (
+                          <>
+                            <li>Predicción de valores cuantitativos</li>
+                            <li>Análisis de factores de influencia</li>
+                            <li>Modelado de relaciones entre variables</li>
+                          </>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </TabsTrigger>
           ))}
         </TabsList>
