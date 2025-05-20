@@ -45,6 +45,20 @@ export interface AnalysisFlow {
   recommendedFor?: RecommendedFor[];
   steps: AnalysisStep[];
   technicalImplementation?: TechnicalImplementation;
+  success_stories?: SuccessStory[];
+}
+
+export interface SuccessStory {
+  company: string;
+  industry: string;
+  challenge: string;
+  solution: string;
+  results: string[];
+  testimonial?: {
+    quote: string;
+    author: string;
+    position: string;
+  };
 }
 
 export interface TechnicalImplementation {
@@ -65,4 +79,42 @@ export interface ImplementationStep {
   name: string;
   description: string;
   resources?: string[];
+}
+
+export interface AnalysisCapability {
+  id: string;
+  title: string;
+  description: string;
+  industry: string;
+  applicableIndustries?: string[];
+  capabilities: string[];
+  benefits: string[];
+  useCases: string[];
+  technical_details?: {
+    modelTypes: string[];
+    dataRequirements: string[];
+    integrations: string[];
+  };
+}
+
+export interface AIModelInfo {
+  id: string;
+  name: string;
+  type: string;
+  industry: string;
+  applicableIndustries?: string[];
+  description: string;
+  use_cases: string[];
+  benefits: string[];
+  implementation_difficulty: 'básico' | 'intermedio' | 'avanzado';
+  data_requirements: string[];
+  typical_metrics: { name: string; description: string }[];
+}
+
+export interface IndustryInsight {
+  industry: string;
+  key_metrics: { name: string; description: string; benefit: string }[];
+  common_challenges: { title: string; description: string; solution: string }[];
+  trending_analytics: string[];
+  roi_stats: { metric: string; value: string; description: string }[];
 }

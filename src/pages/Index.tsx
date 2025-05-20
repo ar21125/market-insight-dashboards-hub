@@ -1,130 +1,136 @@
 
 import React from 'react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { BarChart, AreaChart, PieChart } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AnalysisCapabilities } from '@/components/AnalysisCapabilities';
+import { IndustryAnalysisOverview } from '@/components/IndustryAnalysisOverview';
+import { ArrowRight, BarChart3, Boxes, Brain, FileBarChart2, Globe, LineChart } from "lucide-react";
+import { MCPRecommendations } from '@/components/MCPRecommendations';
 
-const Index = () => {
+export default function Index() {
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="w-full py-4 px-6 bg-white border-b">
-        <div className="container mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <BarChart className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-bold text-primary">DataViz Pro</h1>
-          </div>
-          <nav>
-            <ul className="flex gap-6">
-              <li>
-                <Link to="/" className="font-medium">Inicio</Link>
-              </li>
-              <li>
-                <Link to="/industries" className="font-medium">Industrias</Link>
-              </li>
-              <li>
-                <a href="#features" className="font-medium">Características</a>
-              </li>
-            </ul>
-          </nav>
-          <Button asChild>
-            <Link to="/industries">Comenzar</Link>
-          </Button>
-        </div>
-      </header>
-
-      {/* Hero */}
-      <section className="gradient-bg py-20 px-6 text-white">
-        <div className="container mx-auto text-center">
-          <h1 className="text-5xl font-bold mb-6">Analítica de datos especializada por industria</h1>
-          <p className="text-xl mb-10 max-w-2xl mx-auto">
-            Transforme sus datos en insights accionables con paneles personalizados para su sector.
+    <div className="flex flex-col min-h-screen">
+      {/* Hero Section */}
+      <section className="relative bg-gradient-to-b from-indigo-50 via-white to-white dark:from-gray-900 dark:via-gray-950 dark:to-gray-950 pt-24 pb-16">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
+            Plataforma de Análisis Avanzado e Inteligencia Artificial
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+            Transforma tus datos en decisiones estratégicas y ventajas competitivas con nuestra plataforma integrada de análisis e IA
           </p>
-          <div className="flex gap-4 justify-center">
-            <Button size="lg" asChild variant="default" className="bg-white text-primary hover:bg-gray-100">
-              <Link to="/industries">Ver industrias</Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+            <Button size="lg" asChild>
+              <Link to="/industries">Comenzar análisis</Link>
             </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-              <a href="#features">Saber más</a>
+            <Button size="lg" variant="outline" asChild>
+              <Link to="/analysis-capabilities">Explorar capacidades</Link>
+            </Button>
+          </div>
+          
+          <div className="mt-16 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 max-w-4xl mx-auto">
+            {[
+              { icon: BarChart3, label: "Análisis Predictivo" },
+              { icon: Brain, label: "IA Avanzada" },
+              { icon: LineChart, label: "Forecasting" },
+              { icon: FileBarChart2, label: "Visualización" },
+              { icon: Boxes, label: "Clustering" },
+              { icon: Globe, label: "Análisis Geoespacial" }
+            ].map((item, i) => (
+              <div key={i} className="flex flex-col items-center p-3">
+                <div className="bg-primary/10 p-3 rounded-full mb-2">
+                  <item.icon className="h-6 w-6 text-primary" />
+                </div>
+                <span className="text-sm font-medium text-center">{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      
+      {/* Industries Overview Section */}
+      <section className="py-16 bg-gray-50 dark:bg-gray-900">
+        <IndustryAnalysisOverview />
+      </section>
+      
+      {/* Analysis Capabilities Preview */}
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold tracking-tight">Soluciones Analíticas de Vanguardia</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mt-3">
+              Descubre cómo nuestras capacidades avanzadas de análisis pueden transformar tu negocio
+            </p>
+          </div>
+          
+          <div className="mb-8">
+            <AnalysisCapabilities industries={['retail', 'finanzas', 'manufactura']} />
+          </div>
+          
+          <div className="text-center mt-8">
+            <Button asChild size="lg" className="gap-2">
+              <Link to="/analysis-capabilities">
+                Ver todas las capacidades <ArrowRight className="h-4 w-4" />
+              </Link>
             </Button>
           </div>
         </div>
       </section>
-
-      {/* Features */}
-      <section id="features" className="py-20 px-6">
-        <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">Características principales</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="card-hover">
-              <CardContent className="pt-6 text-center">
-                <div className="mb-4 flex justify-center">
-                  <BarChart className="h-12 w-12 text-primary" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">Dashboards por industria</h3>
-                <p className="text-muted-foreground">
-                  Dashboards personalizados según las métricas más importantes para su sector específico.
+      
+      {/* Integration Section */}
+      <section className="py-16 bg-gray-50 dark:bg-gray-900">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold tracking-tight">Integración Empresarial</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mt-3">
+              Integra fácilmente los resultados de análisis con tus herramientas de negocio
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <MCPRecommendations modelType="Análisis Predictivo" />
+            
+            <div className="lg:col-span-2">
+              <div className="p-8 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+                <h3 className="text-xl font-medium mb-4">Ecosistema de integración</h3>
+                <p className="text-muted-foreground mb-6">
+                  Nuestra plataforma se integra con las herramientas de negocio más populares para que puedas aprovechar al máximo tus datos e insights.
                 </p>
-              </CardContent>
-            </Card>
-
-            <Card className="card-hover">
-              <CardContent className="pt-6 text-center">
-                <div className="mb-4 flex justify-center">
-                  <AreaChart className="h-12 w-12 text-primary" />
+                
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {["Excel", "Power BI", "Tableau", "Google Sheets", "Looker", "R Studio"].map((tool, i) => (
+                    <div key={i} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                      <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center">
+                        {tool.charAt(0)}
+                      </div>
+                      <span>{tool}</span>
+                    </div>
+                  ))}
                 </div>
-                <h3 className="text-xl font-bold mb-2">Plantillas descargables</h3>
-                <p className="text-muted-foreground">
-                  Plantillas Excel listas para usar que facilitan la captura y organización de sus datos.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="card-hover">
-              <CardContent className="pt-6 text-center">
-                <div className="mb-4 flex justify-center">
-                  <PieChart className="h-12 w-12 text-primary" />
+                
+                <div className="mt-8">
+                  <Button className="w-full">Ver detalles de integración</Button>
                 </div>
-                <h3 className="text-xl font-bold mb-2">Integración con API</h3>
-                <p className="text-muted-foreground">
-                  API backend en FastAPI para procesar sus datos y generar visualizaciones dinámicas.
-                </p>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </div>
       </section>
-
-      {/* CTA */}
-      <section className="bg-secondary py-16 px-6">
-        <div className="container mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-6">¿Listo para empezar?</h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto">
-            Seleccione su industria y comience a visualizar sus datos con nuestras plantillas especializadas.
+      
+      {/* CTA Section */}
+      <section className="py-16 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold tracking-tight mb-4">
+            Comienza ahora tu viaje analítico
+          </h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+            Transforma tus datos en insights valiosos y ventajas competitivas con nuestra plataforma integrada
           </p>
           <Button size="lg" asChild>
-            <Link to="/industries">Explorar industrias</Link>
+            <Link to="/industries">Comenzar análisis</Link>
           </Button>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-white py-8 px-6 border-t mt-auto">
-        <div className="container mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center gap-2 mb-4 md:mb-0">
-              <BarChart className="h-5 w-5 text-primary" />
-              <span className="font-bold text-lg">DataViz Pro</span>
-            </div>
-            <div className="text-sm text-muted-foreground">
-              &copy; {new Date().getFullYear()} DataViz Pro. Todos los derechos reservados.
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
-};
-
-export default Index;
+}
