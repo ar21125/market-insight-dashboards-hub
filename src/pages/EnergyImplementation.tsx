@@ -1,13 +1,16 @@
+
 import React from 'react';
 import DefaultLayout from '../layouts/DefaultLayout';
 import { Stepper, Step } from '@/components/ui/stepper';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, ArrowRight, Check, ChevronRight, Download, Eye, FileSpreadsheet } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, ChevronRight, Download, Eye, FileSpreadsheet, Calculator } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
+import ROICalculator from '@/components/ROICalculator';
+import { toast } from "sonner";
 
 const EnergyImplementation = () => {
   const navigate = useNavigate();
@@ -30,6 +33,28 @@ const EnergyImplementation = () => {
     navigate('/dashboard/energia');
   };
 
+  const handleDownload = () => {
+    toast.success("Descargando plantilla...", {
+      description: "La plantilla se descargará en breve"
+    });
+  };
+
+  const handleViewCatalog = () => {
+    navigate('/ai-models');
+  };
+
+  const handleShowGuide = () => {
+    toast.info("Guía de preparación", {
+      description: "La guía de preparación de datos se abrirá en una nueva ventana",
+    });
+  };
+
+  const handleGetTemplate = () => {
+    toast.success("Plantilla descargada", {
+      description: "La plantilla de monitoreo se ha descargado correctamente",
+    });
+  };
+
   return (
     <DefaultLayout>
       <div className="container mx-auto py-8">
@@ -40,12 +65,23 @@ const EnergyImplementation = () => {
               Implementación de análisis predictivo para eficiencia energética y reducción de costos
             </p>
           </div>
-          <Button variant="outline" asChild>
-            <Link to="/industries">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Volver a Industrias
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <ROICalculator 
+              defaultIndustry="energia" 
+              trigger={
+                <Button variant="outline">
+                  <Calculator className="mr-2 h-4 w-4" />
+                  Calculadora ROI
+                </Button>
+              }
+            />
+            <Button variant="outline" asChild>
+              <Link to="/industries">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Volver a Industrias
+              </Link>
+            </Button>
+          </div>
         </div>
 
         <div className="mb-8">
@@ -169,23 +205,23 @@ const EnergyImplementation = () => {
                       <CardContent className="space-y-2 pt-0">
                         <div className="flex items-center gap-3 group">
                           <Eye className="h-4 w-4 text-primary" />
-                          <Link to="/ai-models" className="text-sm group-hover:underline">
+                          <button onClick={handleViewCatalog} className="text-sm group-hover:underline">
                             Catálogo de modelos para energía
-                          </Link>
+                          </button>
                           <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                         <div className="flex items-center gap-3 group">
                           <FileSpreadsheet className="h-4 w-4 text-primary" />
-                          <span className="text-sm group-hover:underline cursor-pointer">
+                          <button onClick={handleShowGuide} className="text-sm group-hover:underline cursor-pointer">
                             Guía de preparación de datos energéticos
-                          </span>
+                          </button>
                           <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                         <div className="flex items-center gap-3 group">
                           <Download className="h-4 w-4 text-primary" />
-                          <span className="text-sm group-hover:underline cursor-pointer">
+                          <button onClick={handleGetTemplate} className="text-sm group-hover:underline cursor-pointer">
                             Plantilla de monitoreo de consumo
-                          </span>
+                          </button>
                           <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                       </CardContent>

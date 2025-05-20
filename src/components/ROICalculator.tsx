@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
+import { toast } from 'sonner';
 
 interface ROICalculatorProps {
   defaultIndustry?: string;
@@ -96,6 +97,12 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
         setImplementationTime(3);
         setRiskLevel(2);
     }
+  };
+
+  const handleRequestAnalysis = () => {
+    toast.success("Solicitud enviada", {
+      description: "Un analista se pondrá en contacto contigo pronto",
+    });
   };
 
   return (
@@ -223,7 +230,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
           <p className="text-xs text-muted-foreground mr-auto">
             * Esta es una estimación aproximada. Consulta con nuestros expertos para un análisis detallado.
           </p>
-          <Button type="button">Solicitar Análisis Personalizado</Button>
+          <Button type="button" onClick={handleRequestAnalysis}>Solicitar Análisis Personalizado</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
