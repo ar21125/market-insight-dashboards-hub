@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import Industries from "./pages/Industries";
 import Dashboard from "./pages/Dashboard";
 import AnalysisCapabilitiesPage from "./pages/AnalysisCapabilitiesPage";
+import AIModelsPage from "./pages/AIModelsPage";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/industries" element={<Industries />} />
           <Route path="/dashboard/:industry" element={<Dashboard />} />
           <Route path="/analysis-capabilities" element={<AnalysisCapabilitiesPage />} />
+          <Route path="/ai-models" element={<AIModelsPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

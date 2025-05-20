@@ -6,6 +6,7 @@ import { AnalysisCapabilities } from '@/components/AnalysisCapabilities';
 import { IndustryAnalysisOverview } from '@/components/IndustryAnalysisOverview';
 import { ArrowRight, BarChart3, Boxes, Brain, FileBarChart2, Globe, LineChart } from "lucide-react";
 import { MCPRecommendations } from '@/components/MCPRecommendations';
+import { IndustryInsights } from '@/components/IndustryInsights';
 
 export default function Index() {
   return (
@@ -24,7 +25,7 @@ export default function Index() {
               <Link to="/industries">Comenzar análisis</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link to="/analysis-capabilities">Explorar capacidades</Link>
+              <Link to="/ai-models">Explorar modelos IA</Link>
             </Button>
           </div>
           
@@ -68,9 +69,38 @@ export default function Index() {
           </div>
           
           <div className="text-center mt-8">
-            <Button asChild size="lg" className="gap-2">
+            <Button asChild size="lg" className="gap-2 mr-4">
               <Link to="/analysis-capabilities">
                 Ver todas las capacidades <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="gap-2">
+              <Link to="/ai-models">
+                Explorar modelos IA <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+      
+      {/* Industry Insights Preview */}
+      <section className="py-16 bg-gray-50 dark:bg-gray-900">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold tracking-tight">Insights por Industria</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mt-3">
+              Descubre métricas clave, desafíos y tendencias específicas para tu sector
+            </p>
+          </div>
+          
+          <div className="mb-12">
+            <IndustryInsights industry="retail" />
+          </div>
+          
+          <div className="text-center mt-8">
+            <Button asChild size="lg" className="gap-2">
+              <Link to="/industries">
+                Ver todas las industrias <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
           </div>
@@ -78,7 +108,7 @@ export default function Index() {
       </section>
       
       {/* Integration Section */}
-      <section className="py-16 bg-gray-50 dark:bg-gray-900">
+      <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold tracking-tight">Integración Empresarial</h2>
@@ -126,8 +156,11 @@ export default function Index() {
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
             Transforma tus datos en insights valiosos y ventajas competitivas con nuestra plataforma integrada
           </p>
-          <Button size="lg" asChild>
+          <Button size="lg" asChild className="mr-4">
             <Link to="/industries">Comenzar análisis</Link>
+          </Button>
+          <Button size="lg" variant="outline" asChild>
+            <Link to="/ai-models">Explorar modelos IA</Link>
           </Button>
         </div>
       </section>
