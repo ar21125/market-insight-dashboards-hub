@@ -1,35 +1,33 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import Industries from "./pages/Industries";
 import Dashboard from "./pages/Dashboard";
-import AnalysisCapabilitiesPage from "./pages/AnalysisCapabilitiesPage";
+import Industries from "./pages/Industries";
+import NotFound from "./pages/NotFound";
 import AIModelsPage from "./pages/AIModelsPage";
+import AnalysisCapabilitiesPage from "./pages/AnalysisCapabilitiesPage";
+import AgricultureImplementation from "./pages/AgricultureImplementation";
+import EnergyImplementation from "./pages/EnergyImplementation";
+import { Toaster } from "@/components/ui/sonner";
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+function App() {
+  return (
+    <>
+      <Router>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/industries" element={<Industries />} />
           <Route path="/dashboard/:industry" element={<Dashboard />} />
+          <Route path="/industries" element={<Industries />} />
           <Route path="/analysis-capabilities" element={<AnalysisCapabilitiesPage />} />
           <Route path="/ai-models" element={<AIModelsPage />} />
+          <Route path="/implementation/agricultura" element={<AgricultureImplementation />} />
+          <Route path="/implementation/energia" element={<EnergyImplementation />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+      </Router>
+      <Toaster position="top-right" />
+    </>
+  );
+}
 
 export default App;

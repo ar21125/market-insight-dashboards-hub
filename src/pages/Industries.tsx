@@ -3,7 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart, PieChart, AreaChart, ArrowRight } from "lucide-react";
+import { BarChart, PieChart, AreaChart, ArrowRight, Leaf, Wind } from "lucide-react";
 
 // Definición de industrias con sus datos relevantes
 const industries = [
@@ -13,7 +13,8 @@ const industries = [
     description: "Análisis de ventas, inventario y comportamiento del consumidor para tiendas físicas y en línea.",
     icon: BarChart,
     charts: ["Ventas por categoría", "Rotación de inventario", "Análisis de lealtad del cliente"],
-    color: "bg-blue-100 text-blue-700"
+    color: "bg-blue-100 text-blue-700",
+    implementationPath: "/dashboard/retail"
   },
   {
     id: "finanzas",
@@ -21,15 +22,17 @@ const industries = [
     description: "Seguimiento de indicadores financieros, análisis de riesgo y comportamiento de inversión.",
     icon: PieChart,
     charts: ["Rendimiento de inversiones", "Análisis de riesgo", "Segmentación de clientes"],
-    color: "bg-green-100 text-green-700"
+    color: "bg-green-100 text-green-700",
+    implementationPath: "/dashboard/finanzas"
   },
   {
     id: "salud",
     name: "Salud",
-    description: "Seguimiento de pacientes, análisis operacional y métricas clínicas para hospitales y clínicas.",
+    description: "Seguimiento de pacientes, análisis operacional y métricas básicas para centros médicos.",
     icon: AreaChart,
-    charts: ["Ocupación hospitalaria", "Tiempo de espera", "Eficacia de tratamientos"],
-    color: "bg-red-100 text-red-700"
+    charts: ["Ocupación hospitalaria", "Tiempo de espera", "Análisis de tratamientos"],
+    color: "bg-red-100 text-red-700",
+    implementationPath: "/dashboard/salud"
   },
   {
     id: "manufactura",
@@ -37,7 +40,8 @@ const industries = [
     description: "Control de producción, eficiencia operativa y gestión de la cadena de suministro.",
     icon: BarChart,
     charts: ["Rendimiento de línea de producción", "Control de calidad", "Inventario y logística"],
-    color: "bg-amber-100 text-amber-700"
+    color: "bg-amber-100 text-amber-700",
+    implementationPath: "/dashboard/manufactura"
   },
   {
     id: "tecnologia",
@@ -45,7 +49,8 @@ const industries = [
     description: "Métricas de producto, análisis de uso y rendimiento de aplicaciones.",
     icon: PieChart,
     charts: ["Engagement de usuarios", "Retención", "Conversión y embudo"],
-    color: "bg-purple-100 text-purple-700"
+    color: "bg-purple-100 text-purple-700",
+    implementationPath: "/dashboard/tecnologia"
   },
   {
     id: "educacion",
@@ -53,7 +58,26 @@ const industries = [
     description: "Rendimiento estudiantil, análisis de cursos y métricas administrativas para instituciones educativas.",
     icon: AreaChart,
     charts: ["Rendimiento académico", "Asistencia y retención", "Eficacia de programas"],
-    color: "bg-indigo-100 text-indigo-700"
+    color: "bg-indigo-100 text-indigo-700",
+    implementationPath: "/dashboard/educacion"
+  },
+  {
+    id: "agricultura",
+    name: "Agricultura",
+    description: "Análisis de producción agrícola, optimización de cultivos y monitoreo de condiciones ambientales.",
+    icon: Leaf,
+    charts: ["Rendimiento de cultivos", "Predicción climática", "Uso de recursos"],
+    color: "bg-green-100 text-green-700",
+    implementationPath: "/implementation/agricultura"
+  },
+  {
+    id: "energia",
+    name: "Energía",
+    description: "Análisis de consumo energético, predicción de demanda y optimización de recursos renovables.",
+    icon: Wind,
+    charts: ["Predicción de demanda", "Eficiencia energética", "Análisis de producción renovable"],
+    color: "bg-blue-100 text-blue-700",
+    implementationPath: "/implementation/energia"
   }
 ];
 
@@ -110,8 +134,8 @@ const Industries = () => {
                 </CardContent>
                 <CardFooter>
                   <Button asChild className="w-full">
-                    <Link to={`/dashboard/${industry.id}`} className="flex items-center justify-center gap-2">
-                      Ver dashboard
+                    <Link to={industry.implementationPath} className="flex items-center justify-center gap-2">
+                      Ver análisis
                       <ArrowRight className="h-4 w-4" />
                     </Link>
                   </Button>
