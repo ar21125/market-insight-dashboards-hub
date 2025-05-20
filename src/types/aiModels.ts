@@ -1,6 +1,4 @@
 
-import { Industry } from './analysis';
-
 export interface AIModelParam {
   name: string;
   description: string;
@@ -99,4 +97,3 @@ export const getCategoryForModel = (modelId: string): ModelCategory | undefined 
     category.models.includes(modelId)
   );
 };
-
