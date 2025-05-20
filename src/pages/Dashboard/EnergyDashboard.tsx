@@ -1,364 +1,489 @@
 
 import React from 'react';
+import DefaultLayout from '../../layouts/DefaultLayout';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowRight, LineChart, Zap, Thermometer, BarChart3, Activity, Wind, Lightbulb } from 'lucide-react';
-import DefaultLayout from '@/layouts/DefaultLayout';
+import { ArrowDown, ArrowUp, Download, MoreHorizontal, Zap, Bolt, AlertTriangle, Wrench, Activity, Clock, Calendar, ChevronRight, ArrowRight } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
+
+// Mock data for charts
+const mockChartUrl = "data:image/svg+xml,%3Csvg width='500' height='300' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23f5f5f5'/%3E%3Cpath d='M0,150 C100,100 150,200 200,100 C250,0 300,200 400,150 L400,300 L0,300 Z' fill='rgba(99, 102, 241, 0.2)' stroke='rgb(99, 102, 241)' stroke-width='2'/%3E%3C/svg%3E";
 
 const EnergyDashboard = () => {
+  const [timeRange, setTimeRange] = React.useState("30d");
+  
   return (
     <DefaultLayout>
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="container mx-auto py-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Dashboard de Energía</h1>
-            <p className="text-muted-foreground">Análisis avanzado para optimizar generación, consumo y sostenibilidad energética</p>
+            <h1 className="text-3xl font-bold mb-1">Dashboard de Energía</h1>
+            <p className="text-muted-foreground">
+              Análisis y optimización de consumo energético
+            </p>
           </div>
-          <Button asChild>
-            <Link to="/contact/energia" className="flex items-center gap-2">
-              Solicitar demostración <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Producción Total</CardTitle>
-              <CardDescription>MWh generados</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">168,423</div>
-              <p className="text-xs text-muted-foreground">+8.2% vs período anterior</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Eficiencia</CardTitle>
-              <CardDescription>Aprovechamiento</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">92.4%</div>
-              <p className="text-xs text-muted-foreground">+3.1% vs período anterior</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Huella de Carbono</CardTitle>
-              <CardDescription>Ton CO₂ equivalente</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">42,105</div>
-              <p className="text-xs text-muted-foreground">-12.6% vs período anterior</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Incidentes</CardTitle>
-              <CardDescription>Alertas activas</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">5</div>
-              <p className="text-xs text-muted-foreground">-2 vs período anterior</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Tabs defaultValue="produccion" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="produccion">Producción</TabsTrigger>
-            <TabsTrigger value="consumo">Consumo</TabsTrigger>
-            <TabsTrigger value="mantenimiento">Mantenimiento</TabsTrigger>
-            <TabsTrigger value="renovables">Renovables</TabsTrigger>
-          </TabsList>
-          <TabsContent value="produccion" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card className="md:col-span-2">
-                <CardHeader>
-                  <CardTitle>Producción Energética</CardTitle>
-                  <CardDescription>Generación por tipo de fuente</CardDescription>
-                </CardHeader>
-                <CardContent className="h-[300px] flex items-center justify-center bg-muted/30">
-                  <BarChart3 className="h-16 w-16 text-muted-foreground/50" />
-                </CardContent>
-                <CardFooter>
-                  <Button variant="outline" asChild>
-                    <Link to="/implementation/energia" className="w-full">
-                      Ver análisis detallado
-                    </Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Distribución de Fuentes</CardTitle>
-                  <CardDescription>Mix energético actual</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium">Hidroeléctrica</span>
-                        <span className="text-sm">42%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2.5">
-                        <div className="bg-blue-500 h-2.5 rounded-full" style={{ width: '42%' }}></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium">Solar</span>
-                        <span className="text-sm">28%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2.5">
-                        <div className="bg-yellow-500 h-2.5 rounded-full" style={{ width: '28%' }}></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium">Eólica</span>
-                        <span className="text-sm">18%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2.5">
-                        <div className="bg-green-500 h-2.5 rounded-full" style={{ width: '18%' }}></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium">Gas Natural</span>
-                        <span className="text-sm">12%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2.5">
-                        <div className="bg-orange-500 h-2.5 rounded-full" style={{ width: '12%' }}></div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
           
-          <TabsContent value="consumo">
-            <Card>
-              <CardHeader>
-                <CardTitle>Análisis de Consumo</CardTitle>
-                <CardDescription>Patrones y predicciones de demanda energética</CardDescription>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-muted/30 rounded-lg p-4 flex flex-col">
-                  <div className="flex items-center mb-4">
-                    <Activity className="h-5 w-5 mr-2 text-blue-500" />
-                    <h4 className="font-medium">Consumo Horario</h4>
-                  </div>
-                  <div className="h-[200px] flex items-center justify-center">
-                    <LineChart className="h-16 w-16 text-muted-foreground/50" />
-                  </div>
+          <div className="flex items-center gap-2">
+            <Select
+              defaultValue={timeRange}
+              onValueChange={(value) => setTimeRange(value)}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Periodo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7d">Últimos 7 días</SelectItem>
+                <SelectItem value="30d">Últimos 30 días</SelectItem>
+                <SelectItem value="90d">Últimos 90 días</SelectItem>
+                <SelectItem value="12m">Último año</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Button variant="outline">
+              <Download className="h-4 w-4 mr-2" />
+              Exportar
+            </Button>
+          </div>
+        </div>
+        
+        <div className="grid gap-6 md:grid-cols-4 mb-6">
+          {/* KPI Cards */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Consumo total
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-baseline justify-between">
+                <div className="text-2xl font-bold">247.8 MWh</div>
+                <div className="flex items-center text-green-600">
+                  <ArrowDown className="h-4 w-4 mr-1" />
+                  <span className="text-sm font-medium">12.4%</span>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-4 flex flex-col">
-                  <div className="flex items-center mb-4">
-                    <Thermometer className="h-5 w-5 mr-2 text-orange-500" />
-                    <h4 className="font-medium">Impacto Climático</h4>
-                  </div>
-                  <div className="h-[200px] flex items-center justify-center">
-                    <LineChart className="h-16 w-16 text-muted-foreground/50" />
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button variant="outline" asChild>
-                  <Link to="/implementation/energia" className="w-full">
-                    Ver análisis detallado
-                  </Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Comparado con periodo anterior
+              </p>
+            </CardContent>
+          </Card>
           
-          <TabsContent value="mantenimiento">
-            <Card>
-              <CardHeader>
-                <CardTitle>Mantenimiento Predictivo</CardTitle>
-                <CardDescription>Análisis de estado de equipos y predicción de fallos</CardDescription>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-muted/30 rounded-lg p-4 flex flex-col">
-                  <div className="flex items-center mb-4">
-                    <Zap className="h-5 w-5 mr-2 text-blue-500" />
-                    <h4 className="font-medium">Estado de Equipos</h4>
-                  </div>
-                  <div className="h-[200px] flex items-center justify-center">
-                    <LineChart className="h-16 w-16 text-muted-foreground/50" />
-                  </div>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Costo promedio
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-baseline justify-between">
+                <div className="text-2xl font-bold">€0.14/kWh</div>
+                <div className="flex items-center text-red-600">
+                  <ArrowUp className="h-4 w-4 mr-1" />
+                  <span className="text-sm font-medium">3.2%</span>
                 </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Precio de mercado vs. optimizado
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Eficiencia energética
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-baseline justify-between">
+                <div className="text-2xl font-bold">87%</div>
+                <div className="flex items-center text-green-600">
+                  <ArrowUp className="h-4 w-4 mr-1" />
+                  <span className="text-sm font-medium">5.2%</span>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Ratio de eficiencia operativa
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Estado del sistema
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-baseline justify-between">
+                <div className="text-2xl font-bold">Óptimo</div>
+                <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                  Normal
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Todos los sistemas operando con normalidad
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <Tabs defaultValue="consumption" className="mb-6">
+          <div className="flex justify-center mb-4">
+            <TabsList>
+              <TabsTrigger value="consumption" className="px-6">Consumo</TabsTrigger>
+              <TabsTrigger value="production" className="px-6">Producción</TabsTrigger>
+              <TabsTrigger value="distribution" className="px-6">Distribución</TabsTrigger>
+            </TabsList>
+          </div>
+          
+          <TabsContent value="consumption">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div>
-                  <h4 className="font-medium mb-4">Alertas de Mantenimiento</h4>
-                  <div className="space-y-3">
-                    <div className="bg-red-50 dark:bg-red-950/30 p-3 rounded-lg border border-red-100 dark:border-red-900/50">
-                      <div className="flex items-center">
-                        <Badge variant="outline" className="bg-red-100 dark:bg-red-900">Crítico</Badge>
-                        <span className="ml-2 text-sm font-medium">Turbina #4 - Vibraciones anómalas</span>
-                      </div>
-                    </div>
-                    <div className="bg-amber-50 dark:bg-amber-950/30 p-3 rounded-lg border border-amber-100 dark:border-amber-900/50">
-                      <div className="flex items-center">
-                        <Badge variant="outline" className="bg-amber-100 dark:bg-amber-900">Medio</Badge>
-                        <span className="ml-2 text-sm font-medium">Transformador S12 - Temperatura elevada</span>
-                      </div>
-                    </div>
-                    <div className="bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg border border-blue-100 dark:border-blue-900/50">
-                      <div className="flex items-center">
-                        <Badge variant="outline" className="bg-blue-100 dark:bg-blue-900">Programado</Badge>
-                        <span className="ml-2 text-sm font-medium">Subestación Norte - Revisión periódica</span>
-                      </div>
-                    </div>
-                  </div>
+                  <CardTitle>Consumo energético por periodo</CardTitle>
+                  <CardDescription>
+                    Análisis de patrones de consumo y tendencias
+                  </CardDescription>
                 </div>
-              </CardContent>
-              <CardFooter>
-                <Button variant="outline" asChild>
-                  <Link to="/implementation/energia" className="w-full">
-                    Ver análisis detallado
-                  </Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="renovables">
-            <Card>
-              <CardHeader>
-                <CardTitle>Energías Renovables</CardTitle>
-                <CardDescription>Rendimiento y optimización de fuentes renovables</CardDescription>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <MoreHorizontal className="h-4 w-4" />
+                      <span className="sr-only">Abrir menú</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>Descargar datos</DropdownMenuItem>
+                    <DropdownMenuItem>Ver análisis detallado</DropdownMenuItem>
+                    <DropdownMenuItem>Establecer alertas</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-muted/30 p-4 rounded-lg">
-                      <h4 className="font-medium mb-2 flex items-center">
-                        <Wind className="h-4 w-4 mr-2 text-green-500" />
-                        Eficiencia Eólica
-                      </h4>
-                      <div className="text-2xl font-bold">86%</div>
-                      <p className="text-sm text-muted-foreground">+4% vs trimestre anterior</p>
+                <img 
+                  src={mockChartUrl} 
+                  alt="Gráfico de consumo energético" 
+                  className="w-full h-[350px] object-cover"
+                />
+              </CardContent>
+              <CardFooter className="border-t p-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 w-full gap-6">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Horas pico</span>
+                      <span className="font-medium">10:00 - 14:00</span>
                     </div>
-                    <div className="bg-muted/30 p-4 rounded-lg">
-                      <h4 className="font-medium mb-2 flex items-center">
-                        <Lightbulb className="h-4 w-4 mr-2 text-yellow-500" />
-                        Eficiencia Solar
-                      </h4>
-                      <div className="text-2xl font-bold">92%</div>
-                      <p className="text-sm text-muted-foreground">+2% vs trimestre anterior</p>
-                    </div>
-                    <div className="bg-muted/30 p-4 rounded-lg">
-                      <h4 className="font-medium mb-2">ROI Renovables</h4>
-                      <div className="text-2xl font-bold">215%</div>
-                      <p className="text-sm text-muted-foreground">A 5 años</p>
-                    </div>
+                    <Progress value={72} className="h-2" />
+                    <span className="text-xs text-muted-foreground">72% de consumo total</span>
                   </div>
                   
-                  <div className="bg-muted/20 p-4 rounded-lg border">
-                    <h4 className="font-medium mb-3">Predicciones de Generación</h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-950/30 rounded border border-green-100 dark:border-green-900/50">
-                        <div className="flex items-center">
-                          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border-0">+12%</Badge>
-                          <span className="ml-2 font-medium text-sm">Capacidad eólica proyectada (próximo trimestre)</span>
-                        </div>
-                        <Button size="sm" variant="outline">Detalles</Button>
-                      </div>
-                      <div className="flex items-center justify-between p-2 bg-yellow-50 dark:bg-yellow-950/30 rounded border border-yellow-100 dark:border-yellow-900/50">
-                        <div className="flex items-center">
-                          <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 border-0">+8%</Badge>
-                          <span className="ml-2 font-medium text-sm">Capacidad solar proyectada (próximo trimestre)</span>
-                        </div>
-                        <Button size="sm" variant="outline">Detalles</Button>
-                      </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Horas valle</span>
+                      <span className="font-medium">00:00 - 06:00</span>
                     </div>
+                    <Progress value={18} className="h-2" />
+                    <span className="text-xs text-muted-foreground">18% de consumo total</span>
                   </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Resto del día</span>
+                      <span className="font-medium">Otros periodos</span>
+                    </div>
+                    <Progress value={10} className="h-2" />
+                    <span className="text-xs text-muted-foreground">10% de consumo total</span>
+                  </div>
+                </div>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="production">
+            <Card>
+              <CardHeader>
+                <CardTitle>Producción energética</CardTitle>
+                <CardDescription>
+                  Datos de generación y eficiencia productiva
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="p-8 flex items-center justify-center bg-muted rounded-md">
+                  <p className="text-muted-foreground">
+                    Módulo de producción energética no disponible para este perfil
+                  </p>
                 </div>
               </CardContent>
               <CardFooter>
-                <Button variant="outline" asChild>
-                  <Link to="/implementation/energia" className="w-full">
-                    Ver análisis detallado
-                  </Link>
+                <Button variant="outline" className="ml-auto">
+                  Solicitar acceso
+                </Button>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="distribution">
+            <Card>
+              <CardHeader>
+                <CardTitle>Distribución energética</CardTitle>
+                <CardDescription>
+                  Análisis de distribución y balance de cargas
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="p-8 flex items-center justify-center bg-muted rounded-md">
+                  <p className="text-muted-foreground">
+                    Módulo de distribución energética no disponible para este perfil
+                  </p>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button variant="outline" className="ml-auto">
+                  Solicitar acceso
                 </Button>
               </CardFooter>
             </Card>
           </TabsContent>
         </Tabs>
-
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold mb-4">Modelos recomendados</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
+        
+        <div className="grid gap-6 md:grid-cols-3 mb-6">
+          <div className="md:col-span-2">
+            <Card className="h-full">
               <CardHeader>
-                <CardTitle className="text-lg">ARIMA</CardTitle>
-                <CardDescription>Análisis de series temporales</CardDescription>
+                <CardTitle>Consumo por área</CardTitle>
+                <CardDescription>
+                  Distribución del consumo energético por zonas operativas
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="space-y-1">
-                  <h4 className="text-sm font-medium">Uso principal:</h4>
-                  <p className="text-sm text-muted-foreground">Predicción de demanda energética y patrones de consumo</p>
+              <CardContent>
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="p-4 bg-muted/50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-medium">Producción</h3>
+                      <Badge variant="outline">Alta</Badge>
+                    </div>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-2xl font-bold">142.5</span>
+                      <span className="text-sm text-muted-foreground">MWh</span>
+                    </div>
+                    <Progress value={58} className="h-2 mt-2 mb-1" />
+                    <p className="text-xs text-muted-foreground">
+                      58% del consumo total
+                    </p>
+                  </div>
+                  
+                  <div className="p-4 bg-muted/50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-medium">Oficinas</h3>
+                      <Badge variant="outline">Media</Badge>
+                    </div>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-2xl font-bold">63.4</span>
+                      <span className="text-sm text-muted-foreground">MWh</span>
+                    </div>
+                    <Progress value={25} className="h-2 mt-2 mb-1" />
+                    <p className="text-xs text-muted-foreground">
+                      25% del consumo total
+                    </p>
+                  </div>
+                  
+                  <div className="p-4 bg-muted/50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-medium">Almacenes</h3>
+                      <Badge variant="outline">Baja</Badge>
+                    </div>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-2xl font-bold">41.9</span>
+                      <span className="text-sm text-muted-foreground">MWh</span>
+                    </div>
+                    <Progress value={17} className="h-2 mt-2 mb-1" />
+                    <p className="text-xs text-muted-foreground">
+                      17% del consumo total
+                    </p>
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <h4 className="text-sm font-medium">Precisión:</h4>
-                  <p className="text-sm text-muted-foreground">93% en previsiones a 24h</p>
+                
+                <div className="mt-6 p-4 border rounded-lg">
+                  <h3 className="font-medium mb-2">Oportunidades de ahorro identificadas</h3>
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-2 text-sm">
+                      <Bolt className="h-4 w-4 text-amber-500 mt-0.5" />
+                      <span>
+                        <span className="font-medium">Área de producción:</span> Optimizar ciclos de operación de equipos para reducir consumo en horas pico
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2 text-sm">
+                      <Bolt className="h-4 w-4 text-amber-500 mt-0.5" />
+                      <span>
+                        <span className="font-medium">Oficinas:</span> Implementar sistemas de iluminación inteligente y control de climatización
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2 text-sm">
+                      <Bolt className="h-4 w-4 text-amber-500 mt-0.5" />
+                      <span>
+                        <span className="font-medium">General:</span> Revisión de equipos con bajo rendimiento energético para posible reemplazo
+                      </span>
+                    </li>
+                  </ul>
                 </div>
               </CardContent>
               <CardFooter>
-                <Button variant="outline" asChild className="w-full">
-                  <Link to="/ai-models">Explorar modelo</Link>
+                <Button variant="outline" className="ml-auto" asChild>
+                  <Link to="/implementation/energia">
+                    Ver plan de optimización
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
                 </Button>
               </CardFooter>
             </Card>
-            <Card>
+          </div>
+          
+          <div>
+            <Card className="h-full">
               <CardHeader>
-                <CardTitle className="text-lg">Regresión Polinómica</CardTitle>
-                <CardDescription>Predicción de variables no lineales</CardDescription>
+                <CardTitle>Mantenimiento predictivo</CardTitle>
+                <CardDescription>
+                  Predicciones de mantenimiento y alertas
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="space-y-1">
-                  <h4 className="text-sm font-medium">Uso principal:</h4>
-                  <p className="text-sm text-muted-foreground">Modelado de producción energética según factores climáticos</p>
-                </div>
-                <div className="space-y-1">
-                  <h4 className="text-sm font-medium">Precisión:</h4>
-                  <p className="text-sm text-muted-foreground">89% en predicciones de generación</p>
-                </div>
+              <CardContent className="p-0">
+                <ScrollArea className="h-[300px]">
+                  <div className="px-4">
+                    <div className="py-3 border-b">
+                      <div className="flex items-start justify-between">
+                        <Badge variant="outline" className="bg-amber-100 text-amber-800 mb-1">
+                          <AlertTriangle className="h-3 w-3 mr-1" />
+                          Atención
+                        </Badge>
+                        <div className="flex items-center text-xs text-muted-foreground">
+                          <Clock className="h-3 w-3 mr-1" />
+                          <span>3 días</span>
+                        </div>
+                      </div>
+                      <p className="font-medium text-sm">Transformador #2 - Sobrecarga</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Operando al 92% de capacidad. Considerar balance de carga.
+                      </p>
+                    </div>
+                    
+                    <div className="py-3 border-b">
+                      <div className="flex items-start justify-between">
+                        <Badge variant="outline" className="bg-red-100 text-red-800 mb-1">
+                          <Wrench className="h-3 w-3 mr-1" />
+                          Mantenimiento
+                        </Badge>
+                        <div className="flex items-center text-xs text-muted-foreground">
+                          <Calendar className="h-3 w-3 mr-1" />
+                          <span>15/06/25</span>
+                        </div>
+                      </div>
+                      <p className="font-medium text-sm">Generador auxiliar - Revisión</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Programar mantenimiento preventivo según calendario
+                      </p>
+                    </div>
+                    
+                    <div className="py-3">
+                      <div className="flex items-start justify-between">
+                        <Badge variant="outline" className="bg-green-100 text-green-800 mb-1">
+                          <Activity className="h-3 w-3 mr-1" />
+                          Monitoreo
+                        </Badge>
+                        <div className="flex items-center text-xs text-muted-foreground">
+                          <Clock className="h-3 w-3 mr-1" />
+                          <span>Continuo</span>
+                        </div>
+                      </div>
+                      <p className="font-medium text-sm">Sistema de refrigeración</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Eficiencia dentro de parámetros normales
+                      </p>
+                    </div>
+                  </div>
+                </ScrollArea>
               </CardContent>
-              <CardFooter>
-                <Button variant="outline" asChild className="w-full">
-                  <Link to="/ai-models">Explorar modelo</Link>
+              <CardFooter className="border-t p-4 flex flex-col gap-2">
+                <Button variant="default" size="sm" className="w-full">
+                  <Wrench className="h-4 w-4 mr-2" />
+                  Solicitar mantenimiento
                 </Button>
-              </CardFooter>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Ridge Regression</CardTitle>
-                <CardDescription>Regresión regularizada</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="space-y-1">
-                  <h4 className="text-sm font-medium">Uso principal:</h4>
-                  <p className="text-sm text-muted-foreground">Predicción de fallos y mantenimiento predictivo</p>
-                </div>
-                <div className="space-y-1">
-                  <h4 className="text-sm font-medium">Efectividad:</h4>
-                  <p className="text-sm text-muted-foreground">Reducción de 67% en tiempo de inactividad</p>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button variant="outline" asChild className="w-full">
-                  <Link to="/ai-models">Explorar modelo</Link>
+                <Button variant="outline" size="sm" className="w-full">
+                  Ver historial completo
                 </Button>
               </CardFooter>
             </Card>
           </div>
         </div>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Previsión de consumo</CardTitle>
+            <CardDescription>
+              Proyección de consumo energético para los próximos 30 días
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <img 
+              src={mockChartUrl} 
+              alt="Gráfico de previsión de consumo" 
+              className="w-full h-[250px] object-cover"
+            />
+          </CardContent>
+          <CardFooter className="border-t p-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+              <div className="p-3 bg-muted/50 rounded-lg">
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="font-medium text-sm">Consumo previsto</h3>
+                  <Zap className="h-4 w-4 text-amber-500" />
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-xl font-bold">238.4</span>
+                  <span className="text-xs text-muted-foreground">MWh</span>
+                </div>
+                <div className="flex items-center mt-1 text-xs">
+                  <ArrowDown className="h-3 w-3 text-green-600 mr-1" />
+                  <span className="text-green-600">3.8% menor</span>
+                  <span className="text-muted-foreground ml-1">que actual</span>
+                </div>
+              </div>
+              
+              <div className="p-3 bg-muted/50 rounded-lg">
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="font-medium text-sm">Costo estimado</h3>
+                  <Activity className="h-4 w-4 text-blue-500" />
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-xl font-bold">€31,284</span>
+                </div>
+                <div className="flex items-center mt-1 text-xs">
+                  <ArrowDown className="h-3 w-3 text-green-600 mr-1" />
+                  <span className="text-green-600">€1,570 ahorro</span>
+                  <span className="text-muted-foreground ml-1">potencial</span>
+                </div>
+              </div>
+              
+              <div className="p-3 bg-muted/50 rounded-lg">
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="font-medium text-sm">Oportunidad de ahorro</h3>
+                  <Bolt className="h-4 w-4 text-primary" />
+                </div>
+                <div className="text-xl font-bold">Alta</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Implementando recomendaciones de optimización
+                </div>
+              </div>
+            </div>
+          </CardFooter>
+        </Card>
       </div>
     </DefaultLayout>
   );

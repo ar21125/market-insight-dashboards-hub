@@ -26,6 +26,7 @@ import { AIModelInfo, MODEL_CATEGORIES, getCategoryForModel } from '@/types/aiMo
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Link } from 'react-router-dom';
+import ModelSelectionFlow from '../ModelSelectionFlow';
 
 // Sample models data
 const SAMPLE_MODELS: AIModelInfo[] = [
@@ -610,109 +611,14 @@ interface ImplementationSheetProps {
 
 const ImplementationSheet: React.FC<ImplementationSheetProps> = ({ model }) => {
   return (
-    <Sheet>
-      <SheetTrigger asChild>
+    <ModelSelectionFlow 
+      model={model} 
+      trigger={
         <Button size="sm">
           Implementar <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
-      </SheetTrigger>
-      <SheetContent className="md:max-w-lg overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>Implementar {model.name}</SheetTitle>
-          <SheetDescription>
-            Guía paso a paso para implementar este modelo en su organización
-          </SheetDescription>
-        </SheetHeader>
-        
-        <div className="mt-6 space-y-6">
-          <div className="space-y-3">
-            <h3 className="font-medium flex items-center">
-              <FileSpreadsheet className="h-4 w-4 mr-2 text-primary" /> 
-              Preparación de datos
-            </h3>
-            <div className="bg-muted/50 rounded-md p-3 space-y-2">
-              <p className="text-sm">Para implementar {model.name}, necesitará:</p>
-              <ul className="space-y-1 text-sm">
-                {model.data_requirements.map((req, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <Check className="h-4 w-4 text-primary mt-1" />
-                    <span>{req}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-          
-          <div className="space-y-3">
-            <h3 className="font-medium flex items-center">
-              <Settings className="h-4 w-4 mr-2 text-primary" /> 
-              Configuración del modelo
-            </h3>
-            <div className="bg-muted/50 rounded-md p-3">
-              {model.parameters ? (
-                <div className="space-y-3">
-                  <p className="text-sm">Parámetros clave a considerar:</p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {model.parameters.slice(0, 4).map((param, i) => (
-                      <div key={i} className="text-sm border rounded-md p-2">
-                        <p className="font-medium">{param.name}</p>
-                        <p className="text-xs text-muted-foreground">Valor por defecto: {String(param.default)}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <p className="text-sm">No requiere configuración especial de parámetros.</p>
-              )}
-            </div>
-          </div>
-          
-          <div className="space-y-3">
-            <h3 className="font-medium flex items-center">
-              <BarChart className="h-4 w-4 mr-2 text-primary" /> 
-              Evaluación
-            </h3>
-            <div className="bg-muted/50 rounded-md p-3 space-y-2">
-              <p className="text-sm">Métricas para evaluar el rendimiento:</p>
-              <ul className="space-y-1 text-sm">
-                {model.typical_metrics.map((metric, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <Check className="h-4 w-4 text-primary mt-1" />
-                    <span><span className="font-medium">{metric.name}</span>: {metric.description}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-          
-          <div className="space-y-3">
-            <h3 className="font-medium flex items-center">
-              <Code className="h-4 w-4 mr-2 text-primary" /> 
-              Implementación técnica
-            </h3>
-            <div className="bg-muted/50 rounded-md p-3">
-              <p className="text-sm">Nuestra plataforma le permite implementar este modelo de dos maneras:</p>
-              <div className="mt-3 space-y-2">
-                <div className="flex items-center p-2 border rounded-md bg-background">
-                  <BookOpen className="h-4 w-4 mr-2 text-primary" />
-                  <span className="text-sm">Interfaz guiada sin código</span>
-                </div>
-                <div className="flex items-center p-2 border rounded-md bg-background">
-                  <Code className="h-4 w-4 mr-2 text-primary" />
-                  <span className="text-sm">API programática con ejemplos de código</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <Button className="w-full" asChild>
-            <Link to="/analysis-capabilities">
-              Comenzar implementación
-            </Link>
-          </Button>
-        </div>
-      </SheetContent>
-    </Sheet>
+      }
+    />
   );
 };
 

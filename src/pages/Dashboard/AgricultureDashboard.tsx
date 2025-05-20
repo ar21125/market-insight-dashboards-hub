@@ -1,360 +1,340 @@
 
 import React from 'react';
+import DefaultLayout from '../../layouts/DefaultLayout';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowRight, LineChart, Sprout, Cloud, Droplets, CalendarDays } from 'lucide-react';
-import DefaultLayout from '@/layouts/DefaultLayout';
+import { ArrowDown, ArrowUp, Download, FileBarChart, MoreHorizontal, BarChart, BarChart3, LineChart, ChevronRight, Thermometer, Droplets, Wind, ArrowRight } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+// Mock data for charts
+const mockChartUrl = "data:image/svg+xml,%3Csvg width='500' height='300' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23f5f5f5'/%3E%3Cpath d='M0,150 C100,100 150,200 200,100 C250,0 300,200 400,150 L400,300 L0,300 Z' fill='rgba(99, 102, 241, 0.2)' stroke='rgb(99, 102, 241)' stroke-width='2'/%3E%3C/svg%3E";
 
 const AgricultureDashboard = () => {
+  const [timeRange, setTimeRange] = React.useState("30d");
+  
   return (
     <DefaultLayout>
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="container mx-auto py-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Dashboard de Agricultura</h1>
-            <p className="text-muted-foreground">Análisis avanzado para optimizar producción y sostenibilidad agrícola</p>
+            <h1 className="text-3xl font-bold mb-1">Dashboard de Agricultura</h1>
+            <p className="text-muted-foreground">
+              Análisis y optimización de cultivos basado en datos
+            </p>
           </div>
-          <Button asChild>
-            <Link to="/contact/agricultura" className="flex items-center gap-2">
-              Solicitar demostración <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
+          
+          <div className="flex items-center gap-2">
+            <Select
+              defaultValue={timeRange}
+              onValueChange={(value) => setTimeRange(value)}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Periodo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7d">Últimos 7 días</SelectItem>
+                <SelectItem value="30d">Últimos 30 días</SelectItem>
+                <SelectItem value="90d">Últimos 90 días</SelectItem>
+                <SelectItem value="12m">Último año</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Button variant="outline">
+              <Download className="h-4 w-4 mr-2" />
+              Exportar
+            </Button>
+          </div>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        
+        <div className="grid gap-6 md:grid-cols-3 mb-6">
+          {/* KPI Cards */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Área de Cultivo Analizada</CardTitle>
-              <CardDescription>Hectáreas procesadas</CardDescription>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Rendimiento promedio
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">128,540</div>
-              <p className="text-xs text-muted-foreground">+12.3% vs período anterior</p>
+              <div className="flex items-baseline justify-between">
+                <div className="text-2xl font-bold">7.4 ton/ha</div>
+                <div className="flex items-center text-green-600">
+                  <ArrowUp className="h-4 w-4 mr-1" />
+                  <span className="text-sm font-medium">12.8%</span>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Comparado con temporada anterior
+              </p>
             </CardContent>
           </Card>
+          
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Rendimiento Promedio</CardTitle>
-              <CardDescription>Ton/hectárea</CardDescription>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Eficiencia hídrica
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">4.8</div>
-              <p className="text-xs text-muted-foreground">+8.7% vs período anterior</p>
+              <div className="flex items-baseline justify-between">
+                <div className="text-2xl font-bold">65.8%</div>
+                <div className="flex items-center text-green-600">
+                  <ArrowUp className="h-4 w-4 mr-1" />
+                  <span className="text-sm font-medium">8.3%</span>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Reducción en consumo de agua vs. referencias
+              </p>
             </CardContent>
           </Card>
+          
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Eficiencia Hídrica</CardTitle>
-              <CardDescription>Litros/kg producido</CardDescription>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Salud de cultivo
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">342</div>
-              <p className="text-xs text-muted-foreground">-15.2% vs período anterior</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Anomalías Detectadas</CardTitle>
-              <CardDescription>Alertas activas</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">7</div>
-              <p className="text-xs text-muted-foreground">-3 vs período anterior</p>
+              <div className="flex items-baseline justify-between">
+                <div className="text-2xl font-bold">Buena</div>
+                <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                  Óptimo
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Basado en índices NDVI y análisis de suelo
+              </p>
             </CardContent>
           </Card>
         </div>
-
-        <Tabs defaultValue="rendimiento" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="rendimiento">Rendimiento</TabsTrigger>
-            <TabsTrigger value="clima">Clima</TabsTrigger>
-            <TabsTrigger value="riego">Riego</TabsTrigger>
-            <TabsTrigger value="plagas">Plagas</TabsTrigger>
-          </TabsList>
-          <TabsContent value="rendimiento" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card className="md:col-span-2">
-                <CardHeader>
-                  <CardTitle>Análisis de Rendimiento por Parcela</CardTitle>
-                  <CardDescription>Rendimiento histórico comparativo</CardDescription>
-                </CardHeader>
-                <CardContent className="h-[300px] flex items-center justify-center bg-muted/30">
-                  <LineChart className="h-16 w-16 text-muted-foreground/50" />
-                </CardContent>
-                <CardFooter>
-                  <Button variant="outline" asChild>
-                    <Link to="/implementation/agricultura" className="w-full">
-                      Ver análisis detallado
-                    </Link>
+        
+        <div className="grid gap-6 md:grid-cols-2 mb-6">
+          {/* Main charts */}
+          <Card className="md:col-span-1">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div>
+                <CardTitle>Rendimiento por parcela</CardTitle>
+                <CardDescription>
+                  Comparación de rendimiento actual vs proyección
+                </CardDescription>
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="sr-only">Abrir menú</span>
                   </Button>
-                </CardFooter>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Factores de Influencia</CardTitle>
-                  <CardDescription>Impacto en rendimiento</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium">Suelo</span>
-                        <span className="text-sm">38%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2.5">
-                        <div className="bg-primary h-2.5 rounded-full" style={{ width: '38%' }}></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium">Riego</span>
-                        <span className="text-sm">27%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2.5">
-                        <div className="bg-primary h-2.5 rounded-full" style={{ width: '27%' }}></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium">Fertilización</span>
-                        <span className="text-sm">22%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2.5">
-                        <div className="bg-primary h-2.5 rounded-full" style={{ width: '22%' }}></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium">Clima</span>
-                        <span className="text-sm">13%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2.5">
-                        <div className="bg-primary h-2.5 rounded-full" style={{ width: '13%' }}></div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>Descargar CSV</DropdownMenuItem>
+                  <DropdownMenuItem>Ver detalles</DropdownMenuItem>
+                  <DropdownMenuItem>Compartir reporte</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </CardHeader>
+            <CardContent className="pl-2">
+              <img 
+                src={mockChartUrl} 
+                alt="Gráfico de rendimiento por parcela" 
+                className="w-full h-[300px] object-cover"
+              />
+            </CardContent>
+          </Card>
           
-          <TabsContent value="clima">
-            <Card>
+          <Card className="md:col-span-1">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div>
+                <CardTitle>Uso de recursos</CardTitle>
+                <CardDescription>
+                  Consumo de agua y fertilizantes
+                </CardDescription>
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="sr-only">Abrir menú</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>Descargar CSV</DropdownMenuItem>
+                  <DropdownMenuItem>Ver detalles</DropdownMenuItem>
+                  <DropdownMenuItem>Compartir reporte</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </CardHeader>
+            <CardContent className="pl-2">
+              <img 
+                src={mockChartUrl} 
+                alt="Gráfico de uso de recursos" 
+                className="w-full h-[300px] object-cover"
+              />
+            </CardContent>
+          </Card>
+        </div>
+        
+        <div className="grid gap-6 md:grid-cols-3 mb-6">
+          <div className="md:col-span-2">
+            <Card className="h-full">
               <CardHeader>
-                <CardTitle>Análisis Climático</CardTitle>
-                <CardDescription>Impacto de variables climáticas en cultivos</CardDescription>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-muted/30 rounded-lg p-4 flex flex-col">
-                  <div className="flex items-center mb-4">
-                    <Cloud className="h-5 w-5 mr-2 text-blue-500" />
-                    <h4 className="font-medium">Precipitación vs. Rendimiento</h4>
-                  </div>
-                  <div className="h-[200px] flex items-center justify-center">
-                    <LineChart className="h-16 w-16 text-muted-foreground/50" />
-                  </div>
-                </div>
-                <div className="bg-muted/30 rounded-lg p-4 flex flex-col">
-                  <div className="flex items-center mb-4">
-                    <CalendarDays className="h-5 w-5 mr-2 text-orange-500" />
-                    <h4 className="font-medium">Proyección Estacional</h4>
-                  </div>
-                  <div className="h-[200px] flex items-center justify-center">
-                    <LineChart className="h-16 w-16 text-muted-foreground/50" />
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button variant="outline" asChild>
-                  <Link to="/implementation/agricultura" className="w-full">
-                    Ver análisis detallado
-                  </Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="riego">
-            <Card>
-              <CardHeader>
-                <CardTitle>Gestión de Riego</CardTitle>
-                <CardDescription>Optimización de recursos hídricos</CardDescription>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-muted/30 rounded-lg p-4 flex flex-col">
-                  <div className="flex items-center mb-4">
-                    <Droplets className="h-5 w-5 mr-2 text-blue-500" />
-                    <h4 className="font-medium">Eficiencia de Riego por Zonas</h4>
-                  </div>
-                  <div className="h-[200px] flex items-center justify-center">
-                    <LineChart className="h-16 w-16 text-muted-foreground/50" />
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-4">Recomendaciones de Riego</h4>
-                  <div className="space-y-3">
-                    <div className="bg-green-50 dark:bg-green-950/30 p-3 rounded-lg border border-green-100 dark:border-green-900/50">
-                      <div className="flex items-center">
-                        <Badge variant="outline" className="bg-green-100 dark:bg-green-900">Zona A</Badge>
-                        <span className="ml-2 text-sm font-medium">Reducir 15% para optimización</span>
-                      </div>
-                    </div>
-                    <div className="bg-yellow-50 dark:bg-yellow-950/30 p-3 rounded-lg border border-yellow-100 dark:border-yellow-900/50">
-                      <div className="flex items-center">
-                        <Badge variant="outline" className="bg-yellow-100 dark:bg-yellow-900">Zona C</Badge>
-                        <span className="ml-2 text-sm font-medium">Incrementar 10% para evitar estrés</span>
-                      </div>
-                    </div>
-                    <div className="bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg border border-blue-100 dark:border-blue-900/50">
-                      <div className="flex items-center">
-                        <Badge variant="outline" className="bg-blue-100 dark:bg-blue-900">General</Badge>
-                        <span className="ml-2 text-sm font-medium">Ajustar horarios a madrugada</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button variant="outline" asChild>
-                  <Link to="/implementation/agricultura" className="w-full">
-                    Ver análisis detallado
-                  </Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="plagas">
-            <Card>
-              <CardHeader>
-                <CardTitle>Monitoreo de Plagas</CardTitle>
-                <CardDescription>Detección temprana y manejo integrado</CardDescription>
+                <CardTitle>Condiciones ambientales</CardTitle>
+                <CardDescription>
+                  Variables meteorológicas que afectan el rendimiento del cultivo
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-muted/30 p-4 rounded-lg">
-                      <h4 className="font-medium mb-2 flex items-center">
-                        <Sprout className="h-4 w-4 mr-2 text-green-500" />
-                        Riesgo Actual
-                      </h4>
-                      <div className="text-2xl font-bold text-amber-500">Moderado</div>
-                      <p className="text-sm text-muted-foreground">3 zonas en observación</p>
-                    </div>
-                    <div className="bg-muted/30 p-4 rounded-lg">
-                      <h4 className="font-medium mb-2">Detección Temprana</h4>
-                      <div className="text-2xl font-bold text-green-500">95%</div>
-                      <p className="text-sm text-muted-foreground">Precisión del modelo</p>
-                    </div>
-                    <div className="bg-muted/30 p-4 rounded-lg">
-                      <h4 className="font-medium mb-2">Ahorro Estimado</h4>
-                      <div className="text-2xl font-bold">$28,450</div>
-                      <p className="text-sm text-muted-foreground">Último trimestre</p>
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-4 bg-muted/50 rounded-lg flex flex-col items-center">
+                    <Thermometer className="h-8 w-8 text-amber-500 mb-2" />
+                    <h3 className="font-medium">Temperatura</h3>
+                    <div className="mt-1 text-2xl font-bold">24.3°C</div>
+                    <p className="text-xs text-muted-foreground">Promedio semanal</p>
                   </div>
                   
-                  <div className="bg-muted/20 p-4 rounded-lg border">
-                    <h4 className="font-medium mb-3">Alertas Activas</h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between p-2 bg-red-50 dark:bg-red-950/30 rounded border border-red-100 dark:border-red-900/50">
-                        <div className="flex items-center">
-                          <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 border-0">Alta</Badge>
-                          <span className="ml-2 font-medium text-sm">Roya en sector norte</span>
-                        </div>
-                        <Button size="sm" variant="outline">Ver detalles</Button>
-                      </div>
-                      <div className="flex items-center justify-between p-2 bg-amber-50 dark:bg-amber-950/30 rounded border border-amber-100 dark:border-amber-900/50">
-                        <div className="flex items-center">
-                          <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200 border-0">Media</Badge>
-                          <span className="ml-2 font-medium text-sm">Trips en sector este</span>
-                        </div>
-                        <Button size="sm" variant="outline">Ver detalles</Button>
-                      </div>
-                    </div>
+                  <div className="p-4 bg-muted/50 rounded-lg flex flex-col items-center">
+                    <Droplets className="h-8 w-8 text-blue-500 mb-2" />
+                    <h3 className="font-medium">Precipitación</h3>
+                    <div className="mt-1 text-2xl font-bold">42 mm</div>
+                    <p className="text-xs text-muted-foreground">Acumulado semanal</p>
+                  </div>
+                  
+                  <div className="p-4 bg-muted/50 rounded-lg flex flex-col items-center">
+                    <Wind className="h-8 w-8 text-gray-500 mb-2" />
+                    <h3 className="font-medium">Humedad</h3>
+                    <div className="mt-1 text-2xl font-bold">68%</div>
+                    <p className="text-xs text-muted-foreground">Promedio semanal</p>
                   </div>
                 </div>
               </CardContent>
               <CardFooter>
-                <Button variant="outline" asChild>
-                  <Link to="/implementation/agricultura" className="w-full">
-                    Ver análisis detallado
-                  </Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-        </Tabs>
-
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold mb-4">Modelos recomendados</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Random Forest</CardTitle>
-                <CardDescription>Algoritmo para predicción de rendimiento</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="space-y-1">
-                  <h4 className="text-sm font-medium">Uso principal:</h4>
-                  <p className="text-sm text-muted-foreground">Predicción de rendimientos agrícolas basados en múltiples variables</p>
-                </div>
-                <div className="space-y-1">
-                  <h4 className="text-sm font-medium">Precisión:</h4>
-                  <p className="text-sm text-muted-foreground">92% en parcelas de prueba</p>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button variant="outline" asChild className="w-full">
-                  <Link to="/ai-models">Explorar modelo</Link>
-                </Button>
-              </CardFooter>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">ARIMA</CardTitle>
-                <CardDescription>Series temporales para análisis de tendencias</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="space-y-1">
-                  <h4 className="text-sm font-medium">Uso principal:</h4>
-                  <p className="text-sm text-muted-foreground">Previsión de condiciones climáticas y rendimientos futuros</p>
-                </div>
-                <div className="space-y-1">
-                  <h4 className="text-sm font-medium">Precisión:</h4>
-                  <p className="text-sm text-muted-foreground">87% en previsiones a 3 meses</p>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button variant="outline" asChild className="w-full">
-                  <Link to="/ai-models">Explorar modelo</Link>
-                </Button>
-              </CardFooter>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">K-Means</CardTitle>
-                <CardDescription>Algoritmo de clustering para segmentación</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="space-y-1">
-                  <h4 className="text-sm font-medium">Uso principal:</h4>
-                  <p className="text-sm text-muted-foreground">Zonificación de terrenos según características de suelo y clima</p>
-                </div>
-                <div className="space-y-1">
-                  <h4 className="text-sm font-medium">Efectividad:</h4>
-                  <p className="text-sm text-muted-foreground">Incremento de 23% en eficiencia de recursos</p>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button variant="outline" asChild className="w-full">
-                  <Link to="/ai-models">Explorar modelo</Link>
+                <Button variant="ghost" size="sm" className="ml-auto">
+                  Ver historial completo
+                  <ChevronRight className="ml-1 h-4 w-4" />
                 </Button>
               </CardFooter>
             </Card>
           </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Alertas y Notificaciones</CardTitle>
+              <CardDescription>
+                Eventos recientes que requieren atención
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ScrollArea className="h-[220px]">
+                <div className="px-4">
+                  <div className="py-3 border-b">
+                    <div className="flex items-start justify-between">
+                      <Badge variant="outline" className="bg-yellow-100 text-yellow-800 mb-1">
+                        Media
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">Hoy</span>
+                    </div>
+                    <p className="font-medium text-sm">Humedad de suelo por debajo del umbral</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Parcela #3 requiere riego adicional
+                    </p>
+                  </div>
+                  
+                  <div className="py-3 border-b">
+                    <div className="flex items-start justify-between">
+                      <Badge variant="outline" className="bg-red-100 text-red-800 mb-1">
+                        Alta
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">Ayer</span>
+                    </div>
+                    <p className="font-medium text-sm">Posible plaga detectada</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Signos de infestación en sector norte
+                    </p>
+                  </div>
+                  
+                  <div className="py-3">
+                    <div className="flex items-start justify-between">
+                      <Badge variant="outline" className="bg-green-100 text-green-800 mb-1">
+                        Baja
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">3 días atrás</span>
+                    </div>
+                    <p className="font-medium text-sm">Recordatorio de mantenimiento</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Sistema de irrigación requiere revisión mensual
+                    </p>
+                  </div>
+                </div>
+              </ScrollArea>
+            </CardContent>
+            <CardFooter className="border-t px-4 py-2">
+              <Button variant="ghost" size="sm" className="w-full">
+                Ver todas las alertas
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+        
+        <div className="mt-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Recomendaciones</CardTitle>
+              <CardDescription>
+                Sugerencias basadas en análisis de datos para optimizar rendimiento
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-950/30">
+                <h3 className="font-medium mb-2 flex items-center gap-2">
+                  <Droplets className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  Optimización de riego
+                </h3>
+                <p className="text-sm mb-2">
+                  Según las condiciones meteorológicas previstas y la humedad actual del suelo,
+                  se recomienda reducir el riego en un 15% en las parcelas #2 y #5.
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">
+                    Ahorro potencial: 2.500 litros de agua/semana
+                  </span>
+                  <Button size="sm" variant="ghost">Aplicar</Button>
+                </div>
+              </div>
+              
+              <div className="p-4 border rounded-lg bg-emerald-50 dark:bg-emerald-950/30">
+                <h3 className="font-medium mb-2 flex items-center gap-2">
+                  <BarChart className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                  Rotación de cultivos
+                </h3>
+                <p className="text-sm mb-2">
+                  Para la próxima temporada, considere rotar leguminosas en las parcelas #1 y #4
+                  para mejorar la fijación de nitrógeno y la salud del suelo.
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">
+                    Mejora potencial: +18% en rendimiento futuro
+                  </span>
+                  <Button size="sm" variant="ghost">Detalles</Button>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="border-t">
+              <Button variant="outline" className="ml-auto" asChild>
+                <Link to="/implementation/agricultura">
+                  Ver plan de implementación
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </CardFooter>
+          </Card>
         </div>
       </div>
     </DefaultLayout>
