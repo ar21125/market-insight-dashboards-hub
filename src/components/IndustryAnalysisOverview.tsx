@@ -14,7 +14,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ArrowRight, ChevronRight, Users, TrendingUp, BarChart3, FileBarChart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
 
 interface IndustryStats {
   [key: string]: {
@@ -78,20 +77,6 @@ export function IndustryAnalysisOverview() {
       adoption: "62%",
       roi: "241%",
       mainBenefit: "Aprendizaje personalizado y mejor retención"
-    },
-    agricultura: {
-      title: "Agricultura y Agroindustria",
-      growth: "+25%",
-      adoption: "57%",
-      roi: "295%",
-      mainBenefit: "Optimización de rendimientos y gestión de recursos"
-    },
-    energia: {
-      title: "Energía y Utilities",
-      growth: "+31%",
-      adoption: "76%",
-      roi: "312%",
-      mainBenefit: "Eficiencia operativa y mantenimiento predictivo"
     }
   };
 
@@ -108,7 +93,7 @@ export function IndustryAnalysisOverview() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {Object.entries(industryStats).map(([industry, stats]) => (
           <Card key={industry} className="overflow-hidden transition-all hover:shadow-md">
             <CardHeader className="pb-2">
@@ -132,22 +117,13 @@ export function IndustryAnalysisOverview() {
                 {stats.mainBenefit}
               </Badge>
             </CardContent>
-            <CardFooter className="flex flex-col space-y-2">
+            <CardFooter>
               <Button 
                 onClick={() => handleIndustrySelect(industry)} 
                 className="w-full"
                 variant="outline"
               >
                 Ver soluciones <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-              <Button 
-                asChild
-                className="w-full"
-                variant="secondary"
-              >
-                <Link to={`/contact/${industry}`}>
-                  Solicitar demostración <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
               </Button>
             </CardFooter>
           </Card>
@@ -248,14 +224,6 @@ export function IndustryAnalysisOverview() {
               </div>
               <p className="mb-2 font-medium pt-2">"Redujimos los tiempos de inactividad no planificados en un 78%"</p>
               <p className="text-sm text-muted-foreground">- Jefe de Operaciones, Planta Automotriz</p>
-            </div>
-
-            <div className="relative p-4 bg-white/80 dark:bg-gray-900/50 rounded-lg">
-              <div className="absolute -top-2 -left-2 bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 text-xs font-medium rounded-full px-2 py-0.5">
-                Agricultura
-              </div>
-              <p className="mb-2 font-medium pt-2">"Aumentamos rendimientos en un 23% optimizando recursos hídricos"</p>
-              <p className="text-sm text-muted-foreground">- Gerente de Producción, Cooperativa Agrícola</p>
             </div>
           </CardContent>
           <CardFooter>

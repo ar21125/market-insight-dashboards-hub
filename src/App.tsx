@@ -1,39 +1,35 @@
 
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
-import Dashboard from "./pages/Dashboard";
-import Industries from "./pages/Industries";
 import NotFound from "./pages/NotFound";
-import AIModelsPage from "./pages/AIModelsPage";
+import Industries from "./pages/Industries";
+import Dashboard from "./pages/Dashboard";
 import AnalysisCapabilitiesPage from "./pages/AnalysisCapabilitiesPage";
-import AgricultureImplementation from "./pages/AgricultureImplementation";
-import EnergyImplementation from "./pages/EnergyImplementation";
-import AgricultureDashboard from "./pages/Dashboard/AgricultureDashboard";
-import EnergyDashboard from "./pages/Dashboard/EnergyDashboard";
-import ContactPage from "./pages/ContactPage";
-import { Toaster } from "@/components/ui/sonner";
+import AIModelsPage from "./pages/AIModelsPage";
 
-function App() {
-  return (
-    <>
-      <Router>
+const queryClient = new QueryClient();
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/dashboard/:industry" element={<Dashboard />} />
-          <Route path="/dashboard/agricultura" element={<AgricultureDashboard />} />
-          <Route path="/dashboard/energia" element={<EnergyDashboard />} />
           <Route path="/industries" element={<Industries />} />
+          <Route path="/dashboard/:industry" element={<Dashboard />} />
           <Route path="/analysis-capabilities" element={<AnalysisCapabilitiesPage />} />
           <Route path="/ai-models" element={<AIModelsPage />} />
-          <Route path="/implementation/agricultura" element={<AgricultureImplementation />} />
-          <Route path="/implementation/energia" element={<EnergyImplementation />} />
-          <Route path="/contact/:industry" element={<ContactPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </Router>
-      <Toaster position="top-right" />
-    </>
-  );
-}
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;

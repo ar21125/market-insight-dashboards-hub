@@ -3,7 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart, PieChart, AreaChart, ArrowRight, Leaf, Wind } from "lucide-react";
+import { BarChart, PieChart, AreaChart, ArrowRight } from "lucide-react";
 
 // Definición de industrias con sus datos relevantes
 const industries = [
@@ -13,8 +13,7 @@ const industries = [
     description: "Análisis de ventas, inventario y comportamiento del consumidor para tiendas físicas y en línea.",
     icon: BarChart,
     charts: ["Ventas por categoría", "Rotación de inventario", "Análisis de lealtad del cliente"],
-    color: "bg-blue-100 text-blue-700",
-    implementationPath: "/dashboard/retail"
+    color: "bg-blue-100 text-blue-700"
   },
   {
     id: "finanzas",
@@ -22,17 +21,15 @@ const industries = [
     description: "Seguimiento de indicadores financieros, análisis de riesgo y comportamiento de inversión.",
     icon: PieChart,
     charts: ["Rendimiento de inversiones", "Análisis de riesgo", "Segmentación de clientes"],
-    color: "bg-green-100 text-green-700",
-    implementationPath: "/dashboard/finanzas"
+    color: "bg-green-100 text-green-700"
   },
   {
     id: "salud",
     name: "Salud",
-    description: "Seguimiento de pacientes, análisis operacional y métricas básicas para centros médicos.",
+    description: "Seguimiento de pacientes, análisis operacional y métricas clínicas para hospitales y clínicas.",
     icon: AreaChart,
-    charts: ["Ocupación hospitalaria", "Tiempo de espera", "Análisis de tratamientos"],
-    color: "bg-red-100 text-red-700",
-    implementationPath: "/dashboard/salud"
+    charts: ["Ocupación hospitalaria", "Tiempo de espera", "Eficacia de tratamientos"],
+    color: "bg-red-100 text-red-700"
   },
   {
     id: "manufactura",
@@ -40,8 +37,7 @@ const industries = [
     description: "Control de producción, eficiencia operativa y gestión de la cadena de suministro.",
     icon: BarChart,
     charts: ["Rendimiento de línea de producción", "Control de calidad", "Inventario y logística"],
-    color: "bg-amber-100 text-amber-700",
-    implementationPath: "/dashboard/manufactura"
+    color: "bg-amber-100 text-amber-700"
   },
   {
     id: "tecnologia",
@@ -49,8 +45,7 @@ const industries = [
     description: "Métricas de producto, análisis de uso y rendimiento de aplicaciones.",
     icon: PieChart,
     charts: ["Engagement de usuarios", "Retención", "Conversión y embudo"],
-    color: "bg-purple-100 text-purple-700",
-    implementationPath: "/dashboard/tecnologia"
+    color: "bg-purple-100 text-purple-700"
   },
   {
     id: "educacion",
@@ -58,26 +53,7 @@ const industries = [
     description: "Rendimiento estudiantil, análisis de cursos y métricas administrativas para instituciones educativas.",
     icon: AreaChart,
     charts: ["Rendimiento académico", "Asistencia y retención", "Eficacia de programas"],
-    color: "bg-indigo-100 text-indigo-700",
-    implementationPath: "/dashboard/educacion"
-  },
-  {
-    id: "agricultura",
-    name: "Agricultura",
-    description: "Análisis de producción agrícola, optimización de cultivos y monitoreo de condiciones ambientales.",
-    icon: Leaf,
-    charts: ["Rendimiento de cultivos", "Predicción climática", "Uso de recursos"],
-    color: "bg-green-100 text-green-700",
-    implementationPath: "/implementation/agricultura"
-  },
-  {
-    id: "energia",
-    name: "Energía",
-    description: "Análisis de consumo energético, predicción de demanda y optimización de recursos renovables.",
-    icon: Wind,
-    charts: ["Predicción de demanda", "Eficiencia energética", "Análisis de producción renovable"],
-    color: "bg-blue-100 text-blue-700",
-    implementationPath: "/implementation/energia"
+    color: "bg-indigo-100 text-indigo-700"
   }
 ];
 
@@ -98,12 +74,6 @@ const Industries = () => {
               </li>
               <li>
                 <Link to="/industries" className="font-medium">Industrias</Link>
-              </li>
-              <li>
-                <Link to="/analysis-capabilities" className="font-medium">Capacidades</Link>
-              </li>
-              <li>
-                <Link to="/ai-models" className="font-medium">Modelos IA</Link>
               </li>
             </ul>
           </nav>
@@ -138,20 +108,13 @@ const Industries = () => {
                     ))}
                   </ul>
                 </CardContent>
-                <CardFooter className="flex flex-col gap-2">
+                <CardFooter>
                   <Button asChild className="w-full">
-                    <Link to={industry.implementationPath} className="flex items-center justify-center gap-2">
-                      Ver análisis
+                    <Link to={`/dashboard/${industry.id}`} className="flex items-center justify-center gap-2">
+                      Ver dashboard
                       <ArrowRight className="h-4 w-4" />
                     </Link>
                   </Button>
-                  {(industry.id === "agricultura" || industry.id === "energia") && (
-                    <Button variant="outline" asChild className="w-full">
-                      <Link to={`/contact/${industry.id}`} className="flex items-center justify-center gap-2">
-                        Solicitar demostración
-                      </Link>
-                    </Button>
-                  )}
                 </CardFooter>
               </Card>
             ))}
